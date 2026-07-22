@@ -1,8 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function Navbar() {
+export default function Navbar({ onOpenAuth }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error('Error al leer el usuario:', err);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.reload();
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-6 py-3.5 shadow-sm">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 py-3.5 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         
         {/* LOGO UNILINKD CON ISOTIPO ÚNICO */}
@@ -40,19 +60,49 @@ export default function Navbar() {
         {/* MENÚ CENTRAL */}
         <nav className="hidden md:flex items-center gap-8 text-gray-600 font-medium text-sm">
           <a href="#proyectos" className="hover:text-indigo-600 transition-colors">Proyectos</a>
-          <a href="#areas" className="hover:text-indigo-600 transition-colors">Áreas & Habilidades</a>
-          <a href="#servicios" className="hover:text-indigo-600 transition-colors">Servicios</a>
-          <a href="#nosotros" className="hover:text-indigo-600 transition-colors">¿Cómo funciona?</a>
+          <a href="#proyectos" className="hover:text-indigo-600 transition-colors">Estudiantes</a>
+          <a href="#como-funciona" className="hover:text-indigo-600 transition-colors">¿Cómo funciona?</a>
         </nav>
 
-        {/* BOTONES DE ACCESO */}
+        {/* BOTONES DE ACCESO / USUARIO LOGUEADO */}
         <div className="flex items-center gap-3">
-          <button className="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-full font-semibold text-sm transition-all">
-            Iniciar sesión
-          </button>
-          <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2 rounded-full font-semibold text-sm transition-all shadow-md shadow-indigo-100">
-            Unirse ahora
-          </button>
+          {user ? (
+            /* VISTA CON SESIÓN INICIADA */
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-full shadow-sm">
+                <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-inner">
+                  {user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <span className="text-sm font-semibold text-gray-800">
+                  {user.nombre}
+                </span>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="text-sm font-semibold text-red-600 hover:bg-red-50 px-3.5 py-2 rounded-full transition-all"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          ) : (
+            /* VISTA SIN SESIÓN (TUS BOTONES ORIGINALES) */
+            <>
+              <button 
+                onClick={() => onOpenAuth('login')}
+                className="text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-full font-semibold text-sm transition-all"
+              >
+                Iniciar sesión
+              </button>
+
+              <button 
+                onClick={() => onOpenAuth('register')}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2 rounded-full font-semibold text-sm transition-all shadow-md shadow-indigo-100 hover:scale-105"
+              >
+                Unirse ahora
+              </button>
+            </>
+          )}
         </div>
 
       </div>
