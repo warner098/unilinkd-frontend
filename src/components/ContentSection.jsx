@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export default function ContentSection() {
-  const [activeTab, setActiveTab] = useState('proyectos');
+export default function ContentSection({ activeTab, setActiveTab }) {
 
   // PROYECTOS / CONVOCATORIAS REALISTAS (NIVEL ESTUDIANTIL/INICIAL)
   const proyectos = [
@@ -75,7 +74,7 @@ export default function ContentSection() {
   ];
 
   return (
-    <section id="proyectos" className="py-20 px-6 bg-white border-b border-gray-100">
+    <section id="seccion-explorar" className="py-20 px-6 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto space-y-10">
         
         {/* ENCABEZADO Y PESTAÑAS */}
@@ -92,7 +91,7 @@ export default function ContentSection() {
             </p>
           </div>
 
-          {/* BOTONES INTERACTIVOS DE PESTAÑA (ESTILIZADOS Y FINOS) */}
+          {/* BOTONES INTERACTIVOS DE PESTAÑA */}
           <div className="inline-flex bg-gray-100/80 p-1 rounded-xl self-start md:self-auto border border-gray-200/80">
             <button
               onClick={() => setActiveTab('proyectos')}
@@ -106,9 +105,9 @@ export default function ContentSection() {
             </button>
 
             <button
-              onClick={() => setActiveTab('perfiles')}
+              onClick={() => setActiveTab('estudiantes')}
               className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 ${
-                activeTab === 'perfiles'
+                activeTab === 'estudiantes'
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
               }`}
@@ -167,8 +166,8 @@ export default function ContentSection() {
           </div>
         )}
 
-        {/* TAB 2: TARJETAS DE PERFILES */}
-        {activeTab === 'perfiles' && (
+        {/* TAB 2: TARJETAS DE PERFILES DE ESTUDIANTES */}
+        {activeTab === 'estudiantes' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
             {perfiles.map((student) => (
               <div 
