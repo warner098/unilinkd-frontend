@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, user }) { // Recibe 'user' por props
+export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, user }) {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -73,6 +73,17 @@ export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, user }) 
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
+              {/* BOTÓN PANEL ADMIN (SOLO VISIBLE SI ES ADMINISTRADOR) */}
+              {user.rol === 'admin' && (
+                <button
+                  onClick={onOpenAdmin}
+                  title="Panel de Administración"
+                  className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-full transition-all shadow-md shadow-amber-100 flex items-center gap-1 cursor-pointer hover:scale-105"
+                >
+                  <span>👑</span> Panel Admin
+                </button>
+              )}
+
               {/* Botón de usuario interactivizado para abrir el modal */}
               <button 
                 onClick={onOpenProfile}
@@ -89,11 +100,16 @@ export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, user }) 
                 <span className="text-sm font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
                   {user.nombre}
                 </span>
+                {user.rol === 'admin' && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-md">
+                    ADMIN
+                  </span>
+                )}
               </button>
 
               <button
                 onClick={handleLogout}
-                className="text-sm font-semibold text-red-600 hover:bg-red-50 px-3.5 py-2 rounded-full transition-all"
+                className="text-sm font-semibold text-red-600 hover:bg-red-50 px-3.5 py-2 rounded-full transition-all cursor-pointer"
               >
                 Cerrar sesión
               </button>
