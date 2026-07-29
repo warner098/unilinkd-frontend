@@ -80,16 +80,21 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
     }
   };
 
-  // RECHAZAR PROYECTO
+  // RECHAZAR PROYECTO CON RAZÓN
   const handleRejectProject = async (id) => {
-    if (!window.confirm('¿Deseas rechazar y eliminar esta solicitud de proyecto?')) return;
+    const motivo = prompt('Por favor ingresa la razón del rechazo / corrección solicitada para el estudiante:');
+    if (motivo === null) return; // Cancelado
+
+    const motivoFinal = motivo.trim() || 'El contenido no cumple con los lineamientos comunitarios.';
+
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
-        method: 'DELETE',
+      const res = await fetch(`http://localhost:5000/api/projects/${id}/estado`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userRol: 'admin' })
+        body: JSON.stringify({ estado: 'rechazado', motivoRechazo: motivoFinal })
       });
       if (res.ok) {
+        alert('Solicitud rechazada y notificada al usuario con el motivo. ⚠️');
         setPendingProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
         if (onUpdate) onUpdate();
       }
@@ -118,16 +123,21 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
     }
   };
 
-  // RECHAZAR SERVICIO
+  // RECHAZAR SERVICIO CON RAZÓN
   const handleRejectService = async (id) => {
-    if (!window.confirm('¿Deseas rechazar y eliminar esta solicitud de servicio?')) return;
+    const motivo = prompt('Por favor ingresa la razón del rechazo / corrección solicitada para el estudiante:');
+    if (motivo === null) return; // Cancelado
+
+    const motivoFinal = motivo.trim() || 'El contenido no cumple con los lineamientos comunitarios.';
+
     try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
-        method: 'DELETE',
+      const res = await fetch(`http://localhost:5000/api/services/${id}/estado`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userRol: 'admin' })
+        body: JSON.stringify({ estado: 'rechazado', motivoRechazo: motivoFinal })
       });
       if (res.ok) {
+        alert('Solicitud rechazada y notificada al usuario con el motivo. ⚠️');
         setPendingServices((prev) => prev.filter((s) => (s._id || s.id) !== id));
         if (onUpdate) onUpdate();
       }

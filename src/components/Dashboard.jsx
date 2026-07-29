@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin }) {
-  const [activeTab, setActiveTab] = useState('servicios');
+export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication }) {
+  const [activeTab, setActiveTab] = useState('servicios'); // 'servicios' | 'proyectos' | 'mis-publicaciones'
+  
   const [services, setServices] = useState([]);
   const [projects, setProjects] = useState([]);
+  
+  const [myServices, setMyServices] = useState([]);
+  const [myProjects, setMyProjects] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   // Estado para la barra de búsqueda por nombre, título o etiqueta
@@ -12,28 +17,34 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [resServices, resProjects] = await Promise.all([
-        fetch('http://localhost:5000/api/services'),
-        fetch('http://localhost:5000/api/projects')
+      const userId = user?.id || user?._id || '';
+      const userName = user?.nombre || '';
+
+      const [resServices, resProjects, resMyServices, resMyProjects] = await Promise.all([
+        fetch('http://localhost:5000/api/services?estado=aprobado'),
+        fetch('http://localhost:5000/api/projects?estado=aprobado'),
+        fetch(`http://localhost:5000/api/services?autorId=${userId}&autorNombre=${encodeURIComponent(userName)}`),
+        fetch(`http://localhost:5000/api/projects?autorId=${userId}&autorNombre=${encodeURIComponent(userName)}`)
       ]);
 
-      if (resServices.ok) {
-        const servData = await resServices.json();
-        setServices(servData);
-      } else {
-        setServices([]);
-      }
+      if (resServices.ok) setServices(await resServices.json());
+      else setServices([]);
 
-      if (resProjects.ok) {
-        const projData = await resProjects.json();
-        setProjects(projData);
-      } else {
-        setProjects([]);
-      }
+      if (resProjects.ok) setProjects(await resProjects.json());
+      else setProjects([]);
+
+      if (resMyServices.ok) setMyServices(await resMyServices.json());
+      else setMyServices([]);
+
+      if (resMyProjects.ok) setMyProjects(await resMyProjects.json());
+      else setMyProjects([]);
+
     } catch (error) {
       console.error('Error al cargar datos desde el backend:', error);
       setServices([]);
       setProjects([]);
+      setMyServices([]);
+      setMyProjects([]);
     } finally {
       setLoading(false);
     }
@@ -41,7 +52,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [user]);
 
   // Verificar si el usuario actual es el creador O si es Administrador
   const canDelete = (item) => {
@@ -81,6 +92,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
 
       if (res.ok) {
         setProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
+        setMyProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
       } else {
         const data = await res.json();
         alert(data.msg || 'No se pudo eliminar el proyecto');
@@ -109,6 +121,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
 
       if (res.ok) {
         setServices((prev) => prev.filter((s) => (s._id || s.id) !== id));
+        setMyServices((prev) => prev.filter((s) => (s._id || s.id) !== id));
       } else {
         const data = await res.json();
         alert(data.msg || 'No se pudo eliminar el servicio');
@@ -119,7 +132,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
     }
   };
 
-  // Filtrar Servicios en tiempo real por término de búsqueda
+  // Filtrar Servicios por texto de búsqueda
   const filteredServices = services.filter((s) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
@@ -130,7 +143,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
     return matchName || matchSpec || matchDesc || matchTags;
   });
 
-  // Filtrar Proyectos en tiempo real por término de búsqueda
+  // Filtrar Proyectos por texto de búsqueda
   const filteredProjects = projects.filter((p) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
@@ -141,6 +154,8 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
     const matchTags = (p.etiquetas || []).some((t) => t.toLowerCase().includes(q));
     return matchTitle || matchAuthor || matchDesc || matchCat || matchTags;
   });
+
+  const totalMyPublications = myServices.length + myProjects.length;
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -189,7 +204,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
           
           {/* BOTONES PESTAÑA */}
-          <div className="flex justify-center sm:justify-start gap-4 text-sm font-extrabold">
+          <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm font-extrabold">
             <button
               onClick={() => setActiveTab('servicios')}
               className={`pb-2 px-2 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
@@ -217,26 +232,42 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
                 {filteredProjects.length}
               </span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('mis-publicaciones')}
+              className={`pb-2 px-2 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === 'mis-publicaciones'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              📂 Mis Publicaciones
+              <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                {totalMyPublications}
+              </span>
+            </button>
           </div>
 
           {/* CAMPO BUSCADOR POR NOMBRE / CATEGORÍA / ETIQUETA */}
-          <div className="relative max-w-md w-full">
-            <input
-              type="text"
-              placeholder="🔍 Buscar por nombre, título, especialidad o etiqueta..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl border border-gray-200 text-xs bg-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-xs font-bold cursor-pointer"
-              >
-                ✕ Limpiar
-              </button>
-            )}
-          </div>
+          {activeTab !== 'mis-publicaciones' && (
+            <div className="relative max-w-md w-full">
+              <input
+                type="text"
+                placeholder="🔍 Buscar por nombre, título, especialidad o etiqueta..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-2xl border border-gray-200 text-xs bg-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-2xs"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-xs font-bold cursor-pointer"
+                >
+                  ✕ Limpiar
+                </button>
+              )}
+            </div>
+          )}
 
         </div>
 
@@ -248,7 +279,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
           </div>
         )}
 
-        {/* CONTENIDO: SERVICIOS DE ESTUDIANTES */}
+        {/* TAB 1: SERVICIOS DE ESTUDIANTES PÚBLICOS */}
         {!loading && activeTab === 'servicios' && (
           filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
@@ -296,7 +327,18 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
                       Contactar por Ayuda
                     </button>
 
-                    {/* BOTÓN ELIMINAR EXCLUSIVO DEL DUEÑO O ADMINISTRADOR */}
+                    {/* BOTÓN EDITAR */}
+                    {canDelete(est) && onEditPublication && (
+                      <button
+                        onClick={() => onEditPublication(est, 'servicio')}
+                        title="Editar mi servicio"
+                        className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <span>✏️</span>
+                      </button>
+                    )}
+
+                    {/* BOTÓN ELIMINAR */}
                     {canDelete(est) && (
                       <button
                         onClick={() => handleDeleteService(est._id || est.id)}
@@ -333,7 +375,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
           )
         )}
 
-        {/* CONTENIDO: PROYECTOS / TAREAS */}
+        {/* TAB 2: PROYECTOS / TAREAS PÚBLICOS */}
         {!loading && activeTab === 'proyectos' && (
           filteredProjects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
@@ -386,14 +428,25 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
                     <span className="text-xs text-gray-500 font-medium">Por: {proj.autor || 'Estudiante'}</span>
                     
                     <div className="flex items-center gap-2">
-                      {/* BOTÓN ELIMINAR EXCLUSIVO DEL DUEÑO O ADMINISTRADOR */}
+                      {/* BOTÓN EDITAR */}
+                      {canDelete(proj) && onEditPublication && (
+                        <button
+                          onClick={() => onEditPublication(proj, 'proyecto')}
+                          title="Editar mi proyecto"
+                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <span>✏️</span> Editar
+                        </button>
+                      )}
+
+                      {/* BOTÓN ELIMINAR */}
                       {canDelete(proj) && (
                         <button
                           onClick={() => handleDeleteProject(proj._id || proj.id)}
                           title={user?.rol === 'admin' ? "Eliminar como Admin" : "Eliminar mi proyecto"}
                           className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
                         >
-                          <span>🗑️</span> Eliminar
+                          <span>🗑️</span>
                         </button>
                       )}
 
@@ -426,6 +479,197 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin })
               </button>
             </div>
           )
+        )}
+
+        {/* TAB 3: MIS PUBLICACIONES (SERVICIOS Y PROYECTOS PROPIOS DEL USUARIO) */}
+        {!loading && activeTab === 'mis-publicaciones' && (
+          <div className="space-y-8 text-left">
+            
+            {/* MIS PROYECTOS */}
+            <div className="space-y-4">
+              <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-200 pb-2 flex items-center gap-2">
+                <span>🚀</span> Mis Proyectos ({myProjects.length})
+              </h3>
+
+              {myProjects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myProjects.map((p) => {
+                    const isPending = p.estado === 'pendiente';
+                    const isApproved = p.estado === 'aprobado';
+                    const isRejected = p.estado === 'rechazado';
+
+                    return (
+                      <div key={p._id || p.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 relative">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                              {p.categoriaPrincipal}
+                            </span>
+                            
+                            {/* BADGE DE ESTADO */}
+                            {isPending && (
+                              <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
+                                ⏳ En Revisión
+                              </span>
+                            )}
+                            {isApproved && (
+                              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                                ✅ Aprobado & Público
+                              </span>
+                            )}
+                            {isRejected && (
+                              <span className="text-xs font-extrabold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+                                ⚠️ Rechazado / Corrección
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="font-extrabold text-gray-900 text-lg">{p.titulo}</h4>
+                          <p className="text-xs text-gray-600 leading-relaxed">{p.descripcion}</p>
+
+                          {/* MOTIVO DE RECHAZO SI APLICA */}
+                          {isRejected && (
+                            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-900">
+                              <span className="font-bold text-rose-700 block mb-0.5">📌 Motivo indicado por el Administrador:</span>
+                              "{p.motivoRechazo || 'Información no adecuada o incompleta'}"
+                              <span className="block mt-1 text-[11px] font-semibold text-rose-800">
+                                👉 Puedes hacer clic en "Editar" para corregirlo y enviarlo a revisión nuevamente.
+                              </span>
+                            </div>
+                          )}
+
+                          {p.mediaUrl && p.mediaUrl.startsWith('data:image') && (
+                            <div>
+                              <img src={p.mediaUrl} alt={p.titulo} className="w-full h-36 object-cover rounded-xl border border-gray-100" />
+                            </div>
+                          )}
+
+                          {p.etiquetas && p.etiquetas.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-2">
+                              {p.etiquetas.map((t, i) => (
+                                <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-md font-semibold">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* BOTONES DE EDICIÓN Y ELIMINACIÓN */}
+                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => onEditPublication(p, 'proyecto')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span>✏️</span> Editar Proyecto
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteProject(p._id || p.id)}
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-extrabold text-xs px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                          >
+                            <span>🗑️</span> Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic py-4">No has publicado ningún proyecto todavía.</p>
+              )}
+            </div>
+
+            {/* MIS SERVICIOS */}
+            <div className="space-y-4 pt-4">
+              <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-200 pb-2 flex items-center gap-2">
+                <span>🤝</span> Mis Servicios ({myServices.length})
+              </h3>
+
+              {myServices.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myServices.map((s) => {
+                    const isPending = s.estado === 'pendiente';
+                    const isApproved = s.estado === 'aprobado';
+                    const isRejected = s.estado === 'rechazado';
+
+                    return (
+                      <div key={s._id || s.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 relative">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                              {s.semestre}
+                            </span>
+
+                            {/* BADGE DE ESTADO */}
+                            {isPending && (
+                              <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
+                                ⏳ En Revisión
+                              </span>
+                            )}
+                            {isApproved && (
+                              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                                ✅ Aprobado & Público
+                              </span>
+                            )}
+                            {isRejected && (
+                              <span className="text-xs font-extrabold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+                                ⚠️ Rechazado / Corrección
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="font-extrabold text-gray-900 text-lg">{s.areaEspecialidad}</h4>
+                          <p className="text-xs text-gray-600 leading-relaxed">{s.descripcion}</p>
+
+                          {/* MOTIVO DE RECHAZO SI APLICA */}
+                          {isRejected && (
+                            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-900">
+                              <span className="font-bold text-rose-700 block mb-0.5">📌 Motivo indicado por el Administrador:</span>
+                              "{s.motivoRechazo || 'Información no adecuada o incompleta'}"
+                              <span className="block mt-1 text-[11px] font-semibold text-rose-800">
+                                👉 Puedes hacer clic en "Editar" para corregirlo y enviarlo a revisión nuevamente.
+                              </span>
+                            </div>
+                          )}
+
+                          {s.etiquetas && s.etiquetas.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-2">
+                              {s.etiquetas.map((t, i) => (
+                                <span key={i} className="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded-md font-semibold">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* BOTONES DE EDICIÓN Y ELIMINACIÓN */}
+                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => onEditPublication(s, 'servicio')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span>✏️</span> Editar Servicio
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteService(s._id || s.id)}
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-extrabold text-xs px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                          >
+                            <span>🗑️</span> Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic py-4">No has publicado ningún servicio todavía.</p>
+              )}
+            </div>
+
+          </div>
         )}
 
       </div>

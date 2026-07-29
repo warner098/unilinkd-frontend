@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, user, pendingCount = 0 }) {
+export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, onOpenNotifications, user, pendingCount = 0, unreadNotifCount = 0 }) {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -73,6 +73,20 @@ export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAd
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
+              {/* BOTÓN DE CAMPANA DE NOTIFICACIONES */}
+              <button
+                onClick={onOpenNotifications}
+                title="Ver notificaciones"
+                className="relative bg-gray-100 hover:bg-gray-200 text-gray-700 w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer"
+              >
+                <span className="text-base">🔔</span>
+                {unreadNotifCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] w-4 h-4 rounded-full font-extrabold flex items-center justify-center animate-pulse border border-white">
+                    {unreadNotifCount}
+                  </span>
+                )}
+              </button>
+
               {/* BOTÓN PANEL ADMIN (SOLO VISIBLE SI ES ADMINISTRADOR) */}
               {user.rol === 'admin' && (
                 <button

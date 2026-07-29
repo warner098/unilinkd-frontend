@@ -10,20 +10,24 @@ import Dashboard from './components/Dashboard';
 import EditProfileModal from './components/EditProfileModal';
 import CreatePublicationModal from './components/CreatePublicationModal';
 import AdminTagsModal from './components/AdminTagsModal';
+import NotificationsModal from './components/NotificationsModal';
+import EditPublicationModal from './components/EditPublicationModal';
 
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState('login');
   const [user, setUser] = useState(null);
   
-  // Estado para controlar el modal del perfil personal
+  // Modales
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  // Estado para controlar el modal de "Publicar Servicio o Proyecto"
   const [isPublicationOpen, setIsPublicationOpen] = useState(false);
-
-  // Estado para controlar el modal del Panel de Administrador
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  
+  // Modal de Edición de Publicaciones
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingItemType, setEditingItemType] = useState('proyecto');
 
   // Pestaña activa en la sección principal
   const [activeTab, setActiveTab] = useState('proyectos'); 
@@ -34,6 +38,9 @@ function App() {
   // Conteo de solicitudes pendientes para el Administrador
   const [pendingCount, setPendingCount] = useState(0);
   const [showNotificationToast, setShowNotificationToast] = useState(false);
+
+  // Conteo de notificaciones no leídas para el Usuario
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -46,7 +53,34 @@ function App() {
     }
   }, []);
 
-  // CONSULTA PERIÓDICA DE PUBLICACIONES PENDIENTES DE REVISIÓN PARA EL ADMIN
+  // CONSULTAR NOTIFICACIONES DEL USUARIO
+  const fetchUserNotificationsCount = async () => {
+    if (!user) return;
+    try {
+      const userId = user.id || user._id;
+      const userName = user.nombre;
+      const url = `http://localhost:5000/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName || '')}`;
+      
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const unread = data.filter((n) => !n.leido).length;
+        setUnreadNotifCount(unread);
+      }
+    } catch (err) {
+      console.error('Error al consultar notificaciones del usuario:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchUserNotificationsCount();
+      const interval = setInterval(fetchUserNotificationsCount, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user, refreshKey]);
+
+  // CONSULTA PERIÓDICA DE PUBLICACIONES PENDIENTES PARA EL ADMIN
   const fetchPendingCount = async () => {
     if (user?.rol !== 'admin') return;
     try {
@@ -60,7 +94,6 @@ function App() {
         const sData = await resS.json();
         const newTotal = pData.length + sData.length;
 
-        // Si se detectan nuevas solicitudes pendientes, desplegar toast de notificación
         if (newTotal > pendingCount && newTotal > 0) {
           setShowNotificationToast(true);
         }
@@ -75,7 +108,7 @@ function App() {
   useEffect(() => {
     if (user?.rol === 'admin') {
       fetchPendingCount();
-      const interval = setInterval(fetchPendingCount, 4000); // Polling rápido cada 4 segundos
+      const interval = setInterval(fetchPendingCount, 4000);
       return () => clearInterval(interval);
     }
   }, [user, refreshKey]);
@@ -101,6 +134,12 @@ function App() {
     }
     setShowNotificationToast(false);
     setIsAdminModalOpen(true);
+  };
+
+  const handleOpenEditPublication = (item, type) => {
+    setEditingItem(item);
+    setEditingItemType(type);
+    setIsEditOpen(true);
   };
 
   const handleNavigate = (tabName) => {
@@ -145,11 +184,13 @@ function App() {
   const handlePublicationSuccess = () => {
     setRefreshKey((prev) => prev + 1);
     fetchPendingCount();
+    fetchUserNotificationsCount();
   };
 
   const handleAdminUpdate = () => {
     setRefreshKey((prev) => prev + 1);
     fetchPendingCount();
+    fetchUserNotificationsCount();
   };
 
   return (
@@ -160,7 +201,9 @@ function App() {
         onNavigate={handleNavigate} 
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenAdmin={handleOpenAdminModal}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
         pendingCount={pendingCount}
+        unreadNotifCount={unreadNotifCount}
       />
 
       {/* TOAST DE NOTIFICACIÓN EN TIEMPO REAL PARA EL ADMINISTRADOR */}
@@ -190,6 +233,7 @@ function App() {
           user={user} 
           onOpenPublicationModal={handleOpenPublicationModal}
           onOpenAdmin={handleOpenAdminModal}
+          onEditPublication={handleOpenEditPublication}
         />
       ) : (
         <>
@@ -236,11 +280,29 @@ function App() {
         onSuccess={handlePublicationSuccess}
       />
 
-      {/* Modal Panel de Administrador de Etiquetas */}
+      {/* Modal Panel de Administrador */}
       <AdminTagsModal
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
         onUpdate={handleAdminUpdate}
+      />
+
+      {/* Modal Notificaciones de Usuario */}
+      <NotificationsModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        user={user}
+        onUpdate={fetchUserNotificationsCount}
+      />
+
+      {/* Modal Edición de Publicaciones */}
+      <EditPublicationModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        item={editingItem}
+        itemType={editingItemType}
+        user={user}
+        onSuccess={handlePublicationSuccess}
       />
     </div>
   );
