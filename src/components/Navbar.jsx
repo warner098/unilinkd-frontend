@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, onOpenNotifications, user, pendingCount = 0, unreadNotifCount = 0 }) {
+export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, onOpenNotifications, onOpenMyPublications, user, pendingCount = 0, unreadNotifCount = 0 }) {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -73,6 +73,17 @@ export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAd
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
+              {/* BOTÓN MIS PUBLICACIONES EN NAVBAR */}
+              {onOpenMyPublications && (
+                <button
+                  onClick={onOpenMyPublications}
+                  title="Ver mis proyectos y servicios publicados"
+                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-xs px-3.5 py-1.5 rounded-full transition-all border border-indigo-200/80 flex items-center gap-1.5 cursor-pointer hover:scale-105"
+                >
+                  <span>📂</span> Mis Publicaciones
+                </button>
+              )}
+
               {/* BOTÓN DE CAMPANA DE NOTIFICACIONES */}
               <button
                 onClick={onOpenNotifications}

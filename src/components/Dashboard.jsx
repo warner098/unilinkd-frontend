@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication }) {
-  const [activeTab, setActiveTab] = useState('servicios'); // 'servicios' | 'proyectos' | 'mis-publicaciones'
+export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, initialDashboardTab = 'servicios' }) {
+  const [activeTab, setActiveTab] = useState(initialDashboardTab);
   
   const [services, setServices] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -13,6 +13,12 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
 
   // Estado para la barra de búsqueda por nombre, título o etiqueta
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (initialDashboardTab) {
+      setActiveTab(initialDashboardTab);
+    }
+  }, [initialDashboardTab]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -191,6 +197,12 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                 👑 Panel Admin
               </button>
             )}
+            <button 
+              onClick={() => setActiveTab('mis-publicaciones')}
+              className="bg-white/15 hover:bg-white/25 text-white font-extrabold px-4.5 py-3 rounded-2xl border border-white/30 transition-all shadow-md text-sm whitespace-nowrap cursor-pointer hover:scale-105 flex items-center gap-1.5"
+            >
+              <span>📂</span> Mis Publicaciones ({totalMyPublications})
+            </button>
             <button 
               onClick={onOpenPublicationModal}
               className="bg-white text-indigo-600 font-extrabold px-5 py-3 rounded-2xl hover:bg-indigo-50 transition-all shadow-md text-sm whitespace-nowrap cursor-pointer hover:scale-105"

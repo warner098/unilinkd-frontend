@@ -29,6 +29,9 @@ function App() {
   const [editingItem, setEditingItem] = useState(null);
   const [editingItemType, setEditingItemType] = useState('proyecto');
 
+  // Pestaña activa en el Dashboard del usuario
+  const [dashboardTab, setDashboardTab] = useState('servicios');
+
   // Pestaña activa en la sección principal
   const [activeTab, setActiveTab] = useState('proyectos'); 
 
@@ -202,6 +205,7 @@ function App() {
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenAdmin={handleOpenAdminModal}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
+        onOpenMyPublications={() => setDashboardTab('mis-publicaciones')}
         pendingCount={pendingCount}
         unreadNotifCount={unreadNotifCount}
       />
@@ -234,6 +238,7 @@ function App() {
           onOpenPublicationModal={handleOpenPublicationModal}
           onOpenAdmin={handleOpenAdminModal}
           onEditPublication={handleOpenEditPublication}
+          initialDashboardTab={dashboardTab}
         />
       ) : (
         <>
