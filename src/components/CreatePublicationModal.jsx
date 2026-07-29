@@ -134,14 +134,20 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
         body: JSON.stringify({
           ...projectData,
           autor: user?.nombre || 'Estudiante UniLinkd',
-          autorId: user?.id || user?._id
+          autorId: user?.id || user?._id,
+          userRol: user?.rol
         })
       });
 
       const data = await parseResponseData(response);
       if (!response.ok) throw new Error(data.msg || 'Error al publicar el proyecto');
 
-      alert('¡Proyecto / Convocatoria publicada con éxito! 🚀');
+      if (user?.rol === 'admin') {
+        alert('¡Proyecto / Convocatoria aprobada y publicada con éxito! 🚀');
+      } else {
+        alert('¡Tu proyecto ha sido enviado con éxito! Está en estado de revisión y aparecerá disponible cuando el Administrador lo apruebe. ⏳');
+      }
+
       setLoading(false);
       if (onSuccess) onSuccess('proyecto', data);
       onClose();
@@ -167,14 +173,20 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
           ...serviceData,
           nombreEstudiante: serviceData.nombreEstudiante || user?.nombre || 'Estudiante',
           autorId: user?.id || user?._id,
-          fotoUrl: user?.fotoUrl || ''
+          fotoUrl: user?.fotoUrl || '',
+          userRol: user?.rol
         })
       });
 
       const data = await parseResponseData(response);
       if (!response.ok) throw new Error(data.msg || 'Error al publicar el servicio');
 
-      alert('¡Servicio / Tutoría disponible creada con éxito! 👤');
+      if (user?.rol === 'admin') {
+        alert('¡Servicio / Tutoría aprobada y publicada con éxito! 👤');
+      } else {
+        alert('¡Tu servicio ha sido enviado con éxito! Está en estado de revisión y aparecerá disponible cuando el Administrador lo apruebe. ⏳');
+      }
+
       setLoading(false);
       if (onSuccess) onSuccess('servicio', data);
       onClose();

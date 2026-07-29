@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-export default function AdminTagsModal({ isOpen, onClose }) {
-  const [activeAdminTab, setActiveAdminTab] = useState('etiquetas'); // 'etiquetas' | 'proyectos' | 'servicios'
+export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
+  const [activeAdminTab, setActiveAdminTab] = useState('revision'); // 'revision' | 'etiquetas' | 'proyectos' | 'servicios'
+  
   const [tags, setTags] = useState([]);
   const [projects, setProjects] = useState([]);
   const [services, setServices] = useState([]);
+
+  const [pendingProjects, setPendingProjects] = useState([]);
+  const [pendingServices, setPendingServices] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
@@ -25,15 +29,19 @@ export default function AdminTagsModal({ isOpen, onClose }) {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [resTags, resProjects, resServices] = await Promise.all([
+      const [resTags, resProjects, resServices, resPendingProjects, resPendingServices] = await Promise.all([
         fetch('http://localhost:5000/api/tags'),
-        fetch('http://localhost:5000/api/projects'),
-        fetch('http://localhost:5000/api/services')
+        fetch('http://localhost:5000/api/projects?estado=aprobado'),
+        fetch('http://localhost:5000/api/services?estado=aprobado'),
+        fetch('http://localhost:5000/api/projects?estado=pendiente'),
+        fetch('http://localhost:5000/api/services?estado=pendiente')
       ]);
 
       if (resTags.ok) setTags(await resTags.json());
       if (resProjects.ok) setProjects(await resProjects.json());
       if (resServices.ok) setServices(await resServices.json());
+      if (resPendingProjects.ok) setPendingProjects(await resPendingProjects.json());
+      if (resPendingServices.ok) setPendingServices(await resPendingServices.json());
     } catch (err) {
       console.error('Error al cargar datos del Panel Admin:', err);
     } finally {
@@ -49,6 +57,84 @@ export default function AdminTagsModal({ isOpen, onClose }) {
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const totalPending = pendingProjects.length + pendingServices.length;
+
+  // APROBAR PROYECTO
+  const handleApproveProject = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${id}/estado`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'aprobado' })
+      });
+      if (res.ok) {
+        alert('¡Proyecto Aprobado con éxito! Ahora es visible públicamente. ✅');
+        setPendingProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
+        if (onUpdate) onUpdate(); // Refrescar interfaz principal reactivamente
+      } else {
+        alert('Error al aprobar el proyecto.');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  // RECHAZAR PROYECTO
+  const handleRejectProject = async (id) => {
+    if (!window.confirm('¿Deseas rechazar y eliminar esta solicitud de proyecto?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userRol: 'admin' })
+      });
+      if (res.ok) {
+        setPendingProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
+        if (onUpdate) onUpdate();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  // APROBAR SERVICIO
+  const handleApproveService = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/services/${id}/estado`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'aprobado' })
+      });
+      if (res.ok) {
+        alert('¡Servicio Aprobado con éxito! Ahora es visible públicamente. ✅');
+        setPendingServices((prev) => prev.filter((s) => (s._id || s.id) !== id));
+        if (onUpdate) onUpdate(); // Refrescar interfaz principal reactivamente
+      } else {
+        alert('Error al aprobar el servicio.');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  // RECHAZAR SERVICIO
+  const handleRejectService = async (id) => {
+    if (!window.confirm('¿Deseas rechazar y eliminar esta solicitud de servicio?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userRol: 'admin' })
+      });
+      if (res.ok) {
+        setPendingServices((prev) => prev.filter((s) => (s._id || s.id) !== id));
+        if (onUpdate) onUpdate();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
 
   // AGREGAR ETIQUETA OFICIAL
   const handleAddTag = async (e) => {
@@ -72,6 +158,7 @@ export default function AdminTagsModal({ isOpen, onClose }) {
 
       setTags([...tags, data]);
       setNewTagName('');
+      if (onUpdate) onUpdate();
     } catch (err) {
       setErrorMsg(err.message);
     }
@@ -86,6 +173,7 @@ export default function AdminTagsModal({ isOpen, onClose }) {
       });
       if (res.ok) {
         setTags(tags.filter((t) => (t._id || t.id) !== id));
+        if (onUpdate) onUpdate();
       } else {
         const data = await res.json();
         alert(data.msg || 'Error al eliminar');
@@ -95,9 +183,9 @@ export default function AdminTagsModal({ isOpen, onClose }) {
     }
   };
 
-  // MODERACIÓN: ELIMINAR PROYECTO COMO ADMIN
+  // ELIMINAR PROYECTO APROBADO
   const handleDeleteProject = async (id) => {
-    if (!window.confirm('👑 ¿Confirmas eliminar este proyecto de la plataforma?')) return;
+    if (!window.confirm('👑 ¿Confirmas eliminar este proyecto publicado de la plataforma?')) return;
     try {
       const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
         method: 'DELETE',
@@ -106,18 +194,16 @@ export default function AdminTagsModal({ isOpen, onClose }) {
       });
       if (res.ok) {
         setProjects(projects.filter((p) => (p._id || p.id) !== id));
-      } else {
-        const data = await res.json();
-        alert(data.msg || 'No se pudo eliminar el proyecto');
+        if (onUpdate) onUpdate();
       }
     } catch (err) {
       console.error('Error:', err);
     }
   };
 
-  // MODERACIÓN: ELIMINAR SERVICIO COMO ADMIN
+  // ELIMINAR SERVICIO APROBADO
   const handleDeleteService = async (id) => {
-    if (!window.confirm('👑 ¿Confirmas eliminar este servicio de la plataforma?')) return;
+    if (!window.confirm('👑 ¿Confirmas eliminar este servicio publicado de la plataforma?')) return;
     try {
       const res = await fetch(`http://localhost:5000/api/services/${id}`, {
         method: 'DELETE',
@@ -126,9 +212,7 @@ export default function AdminTagsModal({ isOpen, onClose }) {
       });
       if (res.ok) {
         setServices(services.filter((s) => (s._id || s.id) !== id));
-      } else {
-        const data = await res.json();
-        alert(data.msg || 'No se pudo eliminar el servicio');
+        if (onUpdate) onUpdate();
       }
     } catch (err) {
       console.error('Error:', err);
@@ -137,7 +221,7 @@ export default function AdminTagsModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-3xl p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+      <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-4xl p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto">
         
         {/* BOTÓN CERRAR */}
         <button
@@ -153,10 +237,10 @@ export default function AdminTagsModal({ isOpen, onClose }) {
             <span>👑 Panel de Control del Administrador</span>
           </div>
           <h3 className="text-2xl font-extrabold text-[#0F172A]">
-            Moderación & Gestión Global
+            Centro de Moderación & Aprobaciones
           </h3>
           <p className="text-xs text-gray-500 max-w-md mx-auto">
-            Gestiona las etiquetas oficiales o modera y elimina cualquier proyecto o servicio inapropiado.
+            Revisa a detalle las solicitudes enviadas por los estudiantes antes de aprobarlas para su publicación.
           </p>
         </div>
 
@@ -164,36 +248,55 @@ export default function AdminTagsModal({ isOpen, onClose }) {
         <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-6">
           <button
             type="button"
+            onClick={() => setActiveAdminTab('revision')}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeAdminTab === 'revision'
+                ? 'bg-amber-500 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <span>⏳</span> Revisión Pendiente
+            {totalPending > 0 && (
+              <span className="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse">
+                {totalPending}
+              </span>
+            )}
+          </button>
+          
+          <button
+            type="button"
             onClick={() => setActiveAdminTab('etiquetas')}
-            className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
               activeAdminTab === 'etiquetas'
-                ? 'bg-amber-500 text-white shadow-sm'
+                ? 'bg-amber-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             🏷️ Etiquetas ({tags.length})
           </button>
+          
           <button
             type="button"
             onClick={() => setActiveAdminTab('proyectos')}
-            className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
               activeAdminTab === 'proyectos'
-                ? 'bg-amber-500 text-white shadow-sm'
+                ? 'bg-amber-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            🚀 Moderar Proyectos ({projects.length})
+            🚀 Aprobados: Proyectos ({projects.length})
           </button>
+          
           <button
             type="button"
             onClick={() => setActiveAdminTab('servicios')}
-            className={`flex-1 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
               activeAdminTab === 'servicios'
-                ? 'bg-amber-500 text-white shadow-sm'
+                ? 'bg-amber-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            🤝 Moderar Servicios ({services.length})
+            🤝 Aprobados: Servicios ({services.length})
           </button>
         </div>
 
@@ -204,7 +307,158 @@ export default function AdminTagsModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* PESTAÑA 1: ETIQUETAS OFICIALES */}
+        {/* PESTAÑA 1: REVISIÓN PENDIENTE (SOLICITUDES EN ESPERA) */}
+        {activeAdminTab === 'revision' && (
+          <div className="space-y-6 text-left">
+            
+            {/* SECCIÓN 1: PROYECTOS PENDIENTES */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+                <h4 className="text-xs font-extrabold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🚀</span> Solicitudes de Proyectos ({pendingProjects.length})
+                </h4>
+              </div>
+
+              {pendingProjects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pendingProjects.map((p) => (
+                    <div key={p._id || p.id} className="bg-indigo-50/40 border border-indigo-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800">
+                            {p.categoriaPrincipal}
+                          </span>
+                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                            ⏳ Pendiente de Aprobación
+                          </span>
+                        </div>
+
+                        <div>
+                          <h5 className="font-extrabold text-gray-900 text-base">{p.titulo}</h5>
+                          <p className="text-xs text-gray-500 font-semibold mt-0.5">Por: {p.autor}</p>
+                        </div>
+
+                        <p className="text-xs text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-gray-200">
+                          {p.descripcion}
+                        </p>
+
+                        {/* VISTA PREVIA DE IMAGEN DE PC SI EXISTE */}
+                        {p.mediaUrl && p.mediaUrl.startsWith('data:image') && (
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Imagen Adjuntada:</span>
+                            <img src={p.mediaUrl} alt={p.titulo} className="w-full h-36 object-cover rounded-xl border border-gray-200 shadow-2xs" />
+                          </div>
+                        )}
+
+                        {p.repoUrl && (
+                          <a href={p.repoUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-indigo-600 hover:underline block">
+                            💻 Repositorio: {p.repoUrl}
+                          </a>
+                        )}
+
+                        {p.etiquetas && p.etiquetas.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {p.etiquetas.map((t, idx) => (
+                              <span key={idx} className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* BOTONES DE ACCIÓN APROBAR / RECHAZAR */}
+                      <div className="pt-3 border-t border-indigo-100 flex gap-2">
+                        <button
+                          onClick={() => handleApproveProject(p._id || p.id)}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+                        >
+                          ✅ Aprobar Publicación
+                        </button>
+                        <button
+                          onClick={() => handleRejectProject(p._id || p.id)}
+                          className="bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold text-xs px-3 py-2.5 rounded-xl transition-all cursor-pointer"
+                        >
+                          ❌ Rechazar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 py-3 italic">No hay solicitudes de proyectos pendientes.</p>
+              )}
+            </div>
+
+            {/* SECCIÓN 2: SERVICIOS PENDIENTES */}
+            <div className="space-y-3 pt-4">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+                <h4 className="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🤝</span> Solicitudes de Servicios ({pendingServices.length})
+                </h4>
+              </div>
+
+              {pendingServices.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pendingServices.map((s) => (
+                    <div key={s._id || s.id} className="bg-emerald-50/40 border border-emerald-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                            {s.semestre}
+                          </span>
+                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                            ⏳ Pendiente de Aprobación
+                          </span>
+                        </div>
+
+                        <div>
+                          <h5 className="font-extrabold text-gray-900 text-base">{s.areaEspecialidad}</h5>
+                          <p className="text-xs text-emerald-700 font-semibold mt-0.5">Estudiante: {s.nombreEstudiante}</p>
+                        </div>
+
+                        <p className="text-xs text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-gray-200">
+                          {s.descripcion}
+                        </p>
+
+                        {s.etiquetas && s.etiquetas.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {s.etiquetas.map((t, idx) => (
+                              <span key={idx} className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* BOTONES DE ACCIÓN APROBAR / RECHAZAR */}
+                      <div className="pt-3 border-t border-emerald-100 flex gap-2">
+                        <button
+                          onClick={() => handleApproveService(s._id || s.id)}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+                        >
+                          ✅ Aprobar Servicio
+                        </button>
+                        <button
+                          onClick={() => handleRejectService(s._id || s.id)}
+                          className="bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold text-xs px-3 py-2.5 rounded-xl transition-all cursor-pointer"
+                        >
+                          ❌ Rechazar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 py-3 italic">No hay solicitudes de servicios pendientes.</p>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* PESTAÑA 2: ETIQUETAS OFICIALES */}
         {activeAdminTab === 'etiquetas' && (
           <div className="space-y-6">
             <form onSubmit={handleAddTag} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 text-left">
@@ -275,11 +529,11 @@ export default function AdminTagsModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* PESTAÑA 2: MODERAR PROYECTOS */}
+        {/* PESTAÑA 3: PROYECTOS APROBADOS */}
         {activeAdminTab === 'proyectos' && (
           <div className="space-y-3 text-left">
             <h4 className="text-xs font-extrabold text-gray-700 uppercase tracking-wider">
-              Todos los Proyectos Activos ({projects.length}):
+              Proyectos Públicos Aprobados ({projects.length}):
             </h4>
             {projects.length > 0 ? (
               <div className="space-y-2.5 max-h-96 overflow-y-auto">
@@ -299,22 +553,22 @@ export default function AdminTagsModal({ isOpen, onClose }) {
                       onClick={() => handleDeleteProject(p._id || p.id)}
                       className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer shadow-xs"
                     >
-                      🗑️ Eliminar Proyecto
+                      🗑️ Eliminar
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-gray-400 py-8 text-center">No hay proyectos activos registrados.</p>
+              <p className="text-xs text-gray-400 py-8 text-center">No hay proyectos aprobados aún.</p>
             )}
           </div>
         )}
 
-        {/* PESTAÑA 3: MODERAR SERVICIOS */}
+        {/* PESTAÑA 4: SERVICIOS APROBADOS */}
         {activeAdminTab === 'servicios' && (
           <div className="space-y-3 text-left">
             <h4 className="text-xs font-extrabold text-gray-700 uppercase tracking-wider">
-              Todos los Servicios Activos ({services.length}):
+              Servicios Públicos Aprobados ({services.length}):
             </h4>
             {services.length > 0 ? (
               <div className="space-y-2.5 max-h-96 overflow-y-auto">
@@ -334,13 +588,13 @@ export default function AdminTagsModal({ isOpen, onClose }) {
                       onClick={() => handleDeleteService(s._id || s.id)}
                       className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer shadow-xs"
                     >
-                      🗑️ Eliminar Servicio
+                      🗑️ Eliminar
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-gray-400 py-8 text-center">No hay servicios activos registrados.</p>
+              <p className="text-xs text-gray-400 py-8 text-center">No hay servicios aprobados aún.</p>
             )}
           </div>
         )}

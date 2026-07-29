@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, user }) {
+export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAdmin, user, pendingCount = 0 }) {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -78,9 +78,14 @@ export default function Navbar({ onOpenAuth, onNavigate, onOpenProfile, onOpenAd
                 <button
                   onClick={onOpenAdmin}
                   title="Panel de Administración"
-                  className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-full transition-all shadow-md shadow-amber-100 flex items-center gap-1 cursor-pointer hover:scale-105"
+                  className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs px-3.5 py-1.5 rounded-full transition-all shadow-md shadow-amber-100 flex items-center gap-1.5 cursor-pointer hover:scale-105 relative"
                 >
-                  <span>👑</span> Panel Admin
+                  <span>👑 Panel Admin</span>
+                  {pendingCount > 0 && (
+                    <span className="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse border border-white">
+                      🔔 {pendingCount}
+                    </span>
+                  )}
                 </button>
               )}
 
