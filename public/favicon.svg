@@ -1,15 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
   <defs>
-    <linearGradient id="unilinkGradFavicon" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="unilinkFavGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#2563EB" />
       <stop offset="100%" stop-color="#7C3AED" />
     </linearGradient>
   </defs>
+  <rect width="32" height="32" rx="8" fill="#FFFFFF" />
   <path 
-    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" 
-    stroke="url(#unilinkGradFavicon)" 
-    stroke-width="3" 
+    d="M18.828 14.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1" 
+    stroke="url(#unilinkFavGradient)" 
+    stroke-width="3.2" 
     stroke-linecap="round" 
     stroke-linejoin="round"
+    fill="none"
   />
 </svg>
