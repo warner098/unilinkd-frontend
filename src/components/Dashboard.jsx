@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, initialDashboardTab = 'servicios' }) {
   const [activeTab, setActiveTab] = useState(initialDashboardTab);
@@ -27,10 +28,10 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
       const userName = user?.nombre || '';
 
       const [resServices, resProjects, resMyServices, resMyProjects] = await Promise.all([
-        fetch('http://localhost:5000/api/services?estado=aprobado'),
-        fetch('http://localhost:5000/api/projects?estado=aprobado'),
-        fetch(`http://localhost:5000/api/services?autorId=${userId}&autorNombre=${encodeURIComponent(userName)}`),
-        fetch(`http://localhost:5000/api/projects?autorId=${userId}&autorNombre=${encodeURIComponent(userName)}`)
+        fetch(`${API_BASE_URL}/api/services?estado=aprobado`),
+        fetch(`${API_BASE_URL}/api/projects?estado=aprobado`),
+        fetch(`${API_BASE_URL}/api/services?autorId=${userId}&autorNombre=${encodeURIComponent(userName)}`),
+        fetch(`${API_BASE_URL}/api/projects?autorId=${userId}&autorNombre=${encodeURIComponent(userName)}`)
       ]);
 
       if (resServices.ok) setServices(await resServices.json());
@@ -86,7 +87,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,7 +116,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/services/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

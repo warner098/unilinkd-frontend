@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function EditPublicationModal({ isOpen, onClose, item, itemType, user, onSuccess }) {
   const [officialTags, setOfficialTags] = useState([]);
@@ -40,7 +41,7 @@ export default function EditPublicationModal({ isOpen, onClose, item, itemType, 
   // CARGAR ETIQUETAS OFICIALES
   useEffect(() => {
     if (isOpen) {
-      fetch('http://localhost:5000/api/tags')
+      fetch(`${API_BASE_URL}/api/tags`)
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => setOfficialTags(data))
         .catch((err) => console.error('Error al cargar etiquetas:', err));
@@ -167,7 +168,7 @@ export default function EditPublicationModal({ isOpen, onClose, item, itemType, 
 
     const id = item._id || item.id;
     const isProject = itemType === 'proyecto';
-    const endpoint = isProject ? `http://localhost:5000/api/projects/${id}` : `http://localhost:5000/api/services/${id}`;
+    const endpoint = isProject ? `${API_BASE_URL}/api/projects/${id}` : `${API_BASE_URL}/api/services/${id}`;
     const payload = isProject 
       ? { ...projectData, userId: user?.id || user?._id, userRol: user?.rol }
       : { ...serviceData, userId: user?.id || user?._id, userRol: user?.rol };

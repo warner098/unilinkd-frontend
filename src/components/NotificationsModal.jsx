@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) {
   const [notifications, setNotifications] = useState([]);
@@ -10,7 +11,7 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
     try {
       const userId = user.id || user._id;
       const userName = user.nombre;
-      const url = `http://localhost:5000/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName || '')}`;
+      const url = `${API_BASE_URL}/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName || '')}`;
       
       const res = await fetch(url);
       if (res.ok) {
@@ -36,7 +37,7 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
 
   const handleMarkAsRead = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/notifications/${id}/leido`, {
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${id}/leido`, {
         method: 'PUT'
       });
       if (res.ok) {
@@ -52,7 +53,7 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
 
   const handleDeleteNotification = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/notifications/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {

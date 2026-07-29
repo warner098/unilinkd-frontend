@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function CreatePublicationModal({ isOpen, onClose, user, onSuccess }) {
   const [activeTab, setActiveTab] = useState('proyecto'); // 'proyecto' | 'servicio'
@@ -37,7 +38,7 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
   useEffect(() => {
     const fetchOfficialTags = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/tags');
+        const res = await fetch(`${API_BASE_URL}/api/tags`);
         if (res.ok) {
           const data = await res.json();
           setOfficialTags(data);
@@ -126,7 +127,7 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/projects', {
+      const response = await fetch(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -164,7 +165,7 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/services', {
+      const response = await fetch(`${API_BASE_URL}/api/services`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

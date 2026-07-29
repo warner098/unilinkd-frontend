@@ -13,6 +13,8 @@ import AdminTagsModal from './components/AdminTagsModal';
 import NotificationsModal from './components/NotificationsModal';
 import EditPublicationModal from './components/EditPublicationModal';
 
+import { API_BASE_URL } from './config/api';
+
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState('login');
@@ -62,7 +64,7 @@ function App() {
     try {
       const userId = user.id || user._id;
       const userName = user.nombre;
-      const url = `http://localhost:5000/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName || '')}`;
+      const url = `${API_BASE_URL}/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName || '')}`;
       
       const res = await fetch(url);
       if (res.ok) {
@@ -88,8 +90,8 @@ function App() {
     if (user?.rol !== 'admin') return;
     try {
       const [resP, resS] = await Promise.all([
-        fetch('http://localhost:5000/api/projects?estado=pendiente'),
-        fetch('http://localhost:5000/api/services?estado=pendiente')
+        fetch(`${API_BASE_URL}/api/projects?estado=pendiente`),
+        fetch(`${API_BASE_URL}/api/services?estado=pendiente`)
       ]);
 
       if (resP.ok && resS.ok) {
@@ -160,7 +162,7 @@ function App() {
     localStorage.setItem('user', JSON.stringify(usuarioActualizado));
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/perfil', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/perfil`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

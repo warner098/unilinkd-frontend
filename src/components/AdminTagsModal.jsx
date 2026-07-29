@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
   const [activeAdminTab, setActiveAdminTab] = useState('revision'); // 'revision' | 'etiquetas' | 'proyectos' | 'servicios'
@@ -30,11 +31,11 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
     setLoading(true);
     try {
       const [resTags, resProjects, resServices, resPendingProjects, resPendingServices] = await Promise.all([
-        fetch('http://localhost:5000/api/tags'),
-        fetch('http://localhost:5000/api/projects?estado=aprobado'),
-        fetch('http://localhost:5000/api/services?estado=aprobado'),
-        fetch('http://localhost:5000/api/projects?estado=pendiente'),
-        fetch('http://localhost:5000/api/services?estado=pendiente')
+        fetch(`${API_BASE_URL}/api/tags`),
+        fetch(`${API_BASE_URL}/api/projects?estado=aprobado`),
+        fetch(`${API_BASE_URL}/api/services?estado=aprobado`),
+        fetch(`${API_BASE_URL}/api/projects?estado=pendiente`),
+        fetch(`${API_BASE_URL}/api/services?estado=pendiente`)
       ]);
 
       if (resTags.ok) setTags(await resTags.json());
@@ -63,7 +64,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
   // APROBAR PROYECTO
   const handleApproveProject = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}/estado`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'aprobado' })
@@ -88,7 +89,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
     const motivoFinal = motivo.trim() || 'El contenido no cumple con los lineamientos comunitarios.';
 
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}/estado`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'rechazado', motivoRechazo: motivoFinal })
@@ -106,7 +107,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
   // APROBAR SERVICIO
   const handleApproveService = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}/estado`, {
+      const res = await fetch(`${API_BASE_URL}/api/services/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'aprobado' })
@@ -131,7 +132,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
     const motivoFinal = motivo.trim() || 'El contenido no cumple con los lineamientos comunitarios.';
 
     try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}/estado`, {
+      const res = await fetch(`${API_BASE_URL}/api/services/${id}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'rechazado', motivoRechazo: motivoFinal })
@@ -153,7 +154,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
     setErrorMsg('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/tags', {
+      const res = await fetch(`${API_BASE_URL}/api/tags`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -178,7 +179,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
   const handleDeleteTag = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta etiqueta oficial?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/tags/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/tags/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -197,7 +198,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
   const handleDeleteProject = async (id) => {
     if (!window.confirm('👑 ¿Confirmas eliminar este proyecto publicado de la plataforma?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userRol: 'admin' })
@@ -215,7 +216,7 @@ export default function AdminTagsModal({ isOpen, onClose, onUpdate }) {
   const handleDeleteService = async (id) => {
     if (!window.confirm('👑 ¿Confirmas eliminar este servicio publicado de la plataforma?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/services/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userRol: 'admin' })

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, user }) {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
@@ -26,8 +27,8 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
     setLoadingProjects(true);
     try {
       const url = selectedCategory === 'Todas' 
-        ? 'http://localhost:5000/api/projects'
-        : `http://localhost:5000/api/projects?categoria=${encodeURIComponent(selectedCategory)}`;
+        ? `${API_BASE_URL}/api/projects`
+        : `${API_BASE_URL}/api/projects?categoria=${encodeURIComponent(selectedCategory)}`;
       
       const res = await fetch(url);
       if (res.ok) {
@@ -48,7 +49,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
   const fetchServices = async () => {
     setLoadingServices(true);
     try {
-      const res = await fetch('http://localhost:5000/api/services');
+      const res = await fetch(`${API_BASE_URL}/api/services`);
       if (res.ok) {
         const data = await res.json();
         setDbServices(data);
@@ -97,7 +98,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,7 +126,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/services/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

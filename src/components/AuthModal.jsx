@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -103,7 +104,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
     setLoading(true);
 
     const endpoint = activeTab === 'login' ? '/login' : '/register';
-    const url = `http://localhost:5000/api/auth${endpoint}`;
+    const url = `${API_BASE_URL}/api/auth${endpoint}`;
 
     try {
       const response = await fetch(url, {
