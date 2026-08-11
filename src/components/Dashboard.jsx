@@ -11,8 +11,6 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
   const [myProjects, setMyProjects] = useState([]);
 
   const [loading, setLoading] = useState(true);
-
-  // Estado para la barra de búsqueda por nombre, título o etiqueta
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -165,103 +163,138 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
   const totalMyPublications = myServices.length + myProjects.length;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 bg-grid-pattern relative">
+      
+      {/* GLOW ORBS AMBIENTALES DE FONDO */}
+      <div className="glow-orb w-96 h-96 bg-indigo-500/10 top-10 left-1/4"></div>
+      <div className="glow-orb w-80 h-80 bg-blue-500/10 top-40 right-1/4"></div>
+
+      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         
-        {/* BANNER DE BIENVENIDA */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 rounded-3xl p-8 text-white shadow-xl shadow-indigo-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-white/20 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                Espacio Universitario
-              </span>
-              {user?.rol === 'admin' && (
-                <span className="bg-amber-400 text-amber-950 text-xs font-extrabold uppercase px-3 py-1 rounded-full border border-amber-300">
-                  👑 Administrador
-                </span>
-              )}
-            </div>
-            <h1 className="text-3xl font-black mt-2">
-              ¡Bienvenido de nuevo, {user?.nombre || 'Estudiante'}! 👋
-            </h1>
-            <p className="text-indigo-100 text-sm mt-1 max-w-xl">
-              Explora ofertas de colaboración, encuentra ayuda técnica con otros compañeros o postula tus habilidades a proyectos activos.
-            </p>
-          </div>
+        {/* BANNER FUTURISTA DE BIENVENIDA */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-8 sm:p-10 text-white shadow-2xl shadow-indigo-950/20 border border-slate-800">
           
-          <div className="flex flex-wrap gap-3">
-            {user?.rol === 'admin' && onOpenAdmin && (
+          {/* LUCES DE FONDO DEL BANNER */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-violet-600/30 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-blue-600/20 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-indigo-500/20 text-indigo-300 text-[11px] font-extrabold uppercase tracking-widest px-3.5 py-1 rounded-full border border-indigo-500/30 backdrop-blur-md">
+                  ✨ Espacio Universitario UniLinkd
+                </span>
+                {user?.rol === 'admin' && (
+                  <span className="bg-amber-400 text-amber-950 text-[11px] font-black uppercase px-3 py-1 rounded-full border border-amber-300 shadow-sm flex items-center gap-1">
+                    👑 Administrador
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight font-heading">
+                ¡Bienvenido de nuevo, <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">{user?.nombre || 'Estudiante'}</span>! 👋
+              </h1>
+
+              <p className="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed font-normal">
+                Conecta con estudiantes universitarios, solicita colaboración técnica para tus proyectos o postula tus tutorías a la comunidad.
+              </p>
+
+              {/* STATS CHIPS ACCESIBLES */}
+              <div className="flex flex-wrap gap-4 pt-2">
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md text-xs font-semibold text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>{services.length} Servicios Activos</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md text-xs font-semibold text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                  <span>{projects.length} Proyectos Buscando Ayuda</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* BOTONES ACCIÓN DEL BANNER */}
+            <div className="flex flex-wrap lg:flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              {user?.rol === 'admin' && onOpenAdmin && (
+                <button 
+                  onClick={onOpenAdmin}
+                  className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black px-5 py-3 rounded-2xl transition-all shadow-lg shadow-amber-400/20 text-xs sm:text-sm whitespace-nowrap cursor-pointer hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <span>👑</span> Panel Admin
+                </button>
+              )}
+              
               <button 
-                onClick={onOpenAdmin}
-                className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-extrabold px-4 py-3 rounded-2xl transition-all shadow-md text-sm whitespace-nowrap cursor-pointer hover:scale-105"
+                onClick={() => setActiveTab('mis-publicaciones')}
+                className="bg-white/10 hover:bg-white/20 text-white font-extrabold px-5 py-3 rounded-2xl border border-white/20 transition-all shadow-md backdrop-blur-md text-xs sm:text-sm whitespace-nowrap cursor-pointer hover:scale-105 flex items-center justify-center gap-2"
               >
-                👑 Panel Admin
+                <span>📂</span> Mis Publicaciones ({totalMyPublications})
               </button>
-            )}
-            <button 
-              onClick={() => setActiveTab('mis-publicaciones')}
-              className="bg-white/15 hover:bg-white/25 text-white font-extrabold px-4.5 py-3 rounded-2xl border border-white/30 transition-all shadow-md text-sm whitespace-nowrap cursor-pointer hover:scale-105 flex items-center gap-1.5"
-            >
-              <span>📂</span> Mis Publicaciones ({totalMyPublications})
-            </button>
-            <button 
-              onClick={onOpenPublicationModal}
-              className="bg-white text-indigo-600 font-extrabold px-5 py-3 rounded-2xl hover:bg-indigo-50 transition-all shadow-md text-sm whitespace-nowrap cursor-pointer hover:scale-105"
-            >
-              + Publicar Servicio o Proyecto
-            </button>
+
+              <button 
+                onClick={onOpenPublicationModal}
+                className="bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-600 hover:from-blue-600 hover:to-violet-700 text-white font-black px-6 py-3.5 rounded-2xl transition-all shadow-xl shadow-indigo-500/25 text-xs sm:text-sm whitespace-nowrap cursor-pointer hover:scale-105 flex items-center justify-center gap-2 border border-white/20"
+              >
+                <span>+</span> Publicar Servicio o Proyecto
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* BARRA DE BÚSQUEDA GENERAL Y PESTAÑAS */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
+        {/* BARRA DE BÚSQUEDA GENERAL Y PESTAÑAS ELEGANTES */}
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-3xl p-4 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           
-          {/* BOTONES PESTAÑA */}
-          <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm font-extrabold">
+          {/* BOTONES PESTAÑAS CON DISEÑO DE PILL ENCAPSULADO */}
+          <div className="flex flex-wrap items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60">
             <button
               onClick={() => setActiveTab('servicios')}
-              className={`pb-2 px-2 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'servicios'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-indigo-600 shadow-md shadow-slate-200/80 border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              🤝 Estudiantes & Servicios
-              <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-bold">
+              <span>🤝</span> Estudiantes & Servicios
+              <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
+                activeTab === 'servicios' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'
+              }`}>
                 {filteredServices.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('proyectos')}
-              className={`pb-2 px-2 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'proyectos'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-indigo-600 shadow-md shadow-slate-200/80 border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              🚀 Proyectos & Tareas (Buscando ayuda)
-              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">
+              <span>🚀</span> Proyectos & Tareas
+              <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
+                activeTab === 'proyectos' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'
+              }`}>
                 {filteredProjects.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('mis-publicaciones')}
-              className={`pb-2 px-2 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'mis-publicaciones'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-amber-700 shadow-md shadow-slate-200/80 border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              📂 Mis Publicaciones
-              <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">
+              <span>📂</span> Mis Publicaciones
+              <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
+                activeTab === 'mis-publicaciones' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-600'
+              }`}>
                 {totalMyPublications}
               </span>
             </button>
           </div>
 
-          {/* CAMPO BUSCADOR POR NOMBRE / CATEGORÍA / ETIQUETA */}
+          {/* CAMPO BUSCADOR POR TEXTO */}
           {activeTab !== 'mis-publicaciones' && (
             <div className="relative max-w-md w-full">
               <input
@@ -269,12 +302,12 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                 placeholder="🔍 Buscar por nombre, título, especialidad o etiqueta..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-2xl border border-gray-200 text-xs bg-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-2xs"
+                className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs bg-slate-50/80 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-xs font-bold cursor-pointer"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
                 >
                   ✕ Limpiar
                 </button>
@@ -286,9 +319,9 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
 
         {/* INDICADOR DE CARGA */}
         {loading && (
-          <div className="py-12 text-center space-y-3">
-            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs font-semibold text-gray-500">Cargando publicaciones...</p>
+          <div className="py-16 text-center space-y-3">
+            <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto shadow-md"></div>
+            <p className="text-xs font-bold text-slate-500">Cargando publicaciones...</p>
           </div>
         )}
 
@@ -297,37 +330,41 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
           filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
               {filteredServices.map((est) => (
-                <div key={est._id || est.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative group">
+                <div key={est._id || est.id} className="glass-card rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group border border-slate-200/80 hover:border-indigo-300">
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-                        ● Disponible
+                      <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-3 py-1 rounded-full flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Disponible
                       </span>
-                      <span className="text-xs font-medium text-gray-400">{est.semestre}</span>
+                      <span className="text-xs font-bold text-slate-400 bg-slate-100/80 px-2.5 py-0.5 rounded-lg border border-slate-200/50">
+                        {est.semestre}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-4">
+                    <div className="flex items-center gap-3.5 mt-5">
                       {est.fotoUrl ? (
-                        <img src={est.fotoUrl} alt={est.nombreEstudiante} className="w-12 h-12 rounded-full object-cover border border-indigo-100" />
+                        <img src={est.fotoUrl} alt={est.nombreEstudiante} className="w-13 h-13 rounded-2xl object-cover ring-2 ring-indigo-500/20 shadow-md" />
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner">
+                        <div className="w-13 h-13 bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md">
                           {(est.nombreEstudiante || 'E').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <h3 className="font-bold text-gray-900 text-base">{est.nombreEstudiante}</h3>
-                        <p className="text-xs text-indigo-600 font-semibold">{est.areaEspecialidad}</p>
+                        <h3 className="font-extrabold text-slate-900 text-base group-hover:text-indigo-600 transition-colors font-heading">
+                          {est.nombreEstudiante}
+                        </h3>
+                        <p className="text-xs text-indigo-600 font-bold mt-0.5">{est.areaEspecialidad}</p>
                       </div>
                     </div>
 
-                    <p className="text-gray-600 text-xs mt-4 leading-relaxed">
+                    <p className="text-slate-600 text-xs mt-4 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100">
                       {est.descripcion}
                     </p>
 
                     {est.etiquetas && est.etiquetas.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-4">
                         {est.etiquetas.map((hab, idx) => (
-                          <span key={idx} className="bg-gray-100 text-gray-600 text-[11px] font-semibold px-2 py-1 rounded-md">
+                          <span key={idx} className="bg-indigo-50/80 text-indigo-700 border border-indigo-100 text-[11px] font-bold px-2.5 py-1 rounded-lg">
                             {hab}
                           </span>
                         ))}
@@ -335,8 +372,8 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                     )}
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
-                    <button className="flex-1 bg-slate-900 hover:bg-indigo-600 text-white font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button className="flex-1 bg-slate-900 hover:bg-indigo-600 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md cursor-pointer hover:scale-[1.02]">
                       Contactar por Ayuda
                     </button>
 
@@ -345,7 +382,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                       <button
                         onClick={() => onEditPublication(est, 'servicio')}
                         title="Editar mi servicio"
-                        className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                        className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-3 rounded-xl transition-colors cursor-pointer"
                       >
                         <span>✏️</span>
                       </button>
@@ -356,7 +393,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                       <button
                         onClick={() => handleDeleteService(est._id || est.id)}
                         title={user?.rol === 'admin' ? "Eliminar como Admin" : "Eliminar mi servicio"}
-                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                        className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-3 rounded-xl transition-colors cursor-pointer"
                       >
                         <span>🗑️</span>
                       </button>
@@ -366,21 +403,21 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
               ))}
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-3xl p-12 text-center max-w-md mx-auto space-y-4 shadow-sm">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+            <div className="glass-card rounded-3xl p-12 text-center max-w-md mx-auto space-y-4 shadow-sm border border-slate-200">
+              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
                 🤝
               </div>
-              <h3 className="text-lg font-extrabold text-slate-800">
+              <h3 className="text-lg font-extrabold text-slate-800 font-heading">
                 {searchQuery ? 'No se encontraron resultados' : 'Aún no hay servicios ofrecidos'}
               </h3>
-              <p className="text-gray-500 text-xs leading-relaxed">
+              <p className="text-slate-500 text-xs leading-relaxed">
                 {searchQuery 
                   ? `No hay estudiantes o servicios que coincidan con "${searchQuery}". Intenta con otros términos.`
                   : 'Sé el primero en ofrecer tus conocimientos, tutorías o asesorías a la comunidad estudiantil.'}
               </p>
               <button 
                 onClick={onOpenPublicationModal}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-100 cursor-pointer"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-black px-6 py-3 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 cursor-pointer hover:scale-105"
               >
                 + Ofrecer Mi Servicio / Tutoría
               </button>
@@ -393,25 +430,28 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
           filteredProjects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
               {filteredProjects.map((proj) => (
-                <div key={proj._id || proj.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative group">
+                <div key={proj._id || proj.id} className="glass-card rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group border border-slate-200/80 hover:border-indigo-300">
                   <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200/60 px-3 py-1 rounded-full">
                         {proj.categoriaPrincipal || 'General'}
                       </span>
-                      <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+                      <span className="text-[11px] font-extrabold text-amber-800 bg-amber-50 border border-amber-200/60 px-3 py-1 rounded-full">
                         {proj.colaboradoresBuscados || 'Colaboradores'}
                       </span>
                     </div>
 
-                    <h3 className="font-extrabold text-gray-900 text-lg mt-4">{proj.titulo}</h3>
-                    <p className="text-gray-600 text-xs mt-2 leading-relaxed">
+                    <h3 className="font-extrabold text-slate-900 text-xl mt-4 group-hover:text-indigo-600 transition-colors font-heading">
+                      {proj.titulo}
+                    </h3>
+                    
+                    <p className="text-slate-600 text-xs mt-2.5 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100">
                       {proj.descripcion}
                     </p>
 
                     {proj.mediaUrl && proj.mediaUrl.startsWith('data:image') && (
                       <div className="mt-3">
-                        <img src={proj.mediaUrl} alt={proj.titulo} className="w-full h-44 object-cover rounded-xl border border-gray-100" />
+                        <img src={proj.mediaUrl} alt={proj.titulo} className="w-full h-48 object-cover rounded-2xl border border-slate-200 shadow-sm" />
                       </div>
                     )}
 
@@ -420,16 +460,16 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         href={proj.repoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-indigo-600 hover:underline"
+                        className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50/60 px-3 py-1.5 rounded-xl border border-indigo-100 hover:underline"
                       >
-                        <span>💻 Ver Repositorio GitHub/GitLab</span> →
+                        <span>💻 Repositorio GitHub/GitLab</span> →
                       </a>
                     )}
 
                     {proj.etiquetas && proj.etiquetas.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-4">
                         {proj.etiquetas.map((tec, idx) => (
-                          <span key={idx} className="bg-indigo-50 text-indigo-600 text-[11px] font-semibold px-2 py-1 rounded-md">
+                          <span key={idx} className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-bold px-2.5 py-1 rounded-lg">
                             {tec}
                           </span>
                         ))}
@@ -437,8 +477,8 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                     )}
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
-                    <span className="text-xs text-gray-500 font-medium">Por: {proj.autor || 'Estudiante'}</span>
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-500 font-bold">Por: {proj.autor || 'Estudiante'}</span>
                     
                     <div className="flex items-center gap-2">
                       {/* BOTÓN EDITAR */}
@@ -446,7 +486,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         <button
                           onClick={() => onEditPublication(proj, 'proyecto')}
                           title="Editar mi proyecto"
-                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
                         >
                           <span>✏️</span> Editar
                         </button>
@@ -457,13 +497,13 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         <button
                           onClick={() => handleDeleteProject(proj._id || proj.id)}
                           title={user?.rol === 'admin' ? "Eliminar como Admin" : "Eliminar mi proyecto"}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer"
                         >
                           <span>🗑️</span>
                         </button>
                       )}
 
-                      <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors shadow-xs cursor-pointer">
+                      <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer hover:scale-105">
                         Unirme al Proyecto
                       </button>
                     </div>
@@ -472,21 +512,21 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
               ))}
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-3xl p-12 text-center max-w-md mx-auto space-y-4 shadow-sm">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+            <div className="glass-card rounded-3xl p-12 text-center max-w-md mx-auto space-y-4 shadow-sm border border-slate-200">
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
                 🚀
               </div>
-              <h3 className="text-lg font-extrabold text-slate-800">
+              <h3 className="text-lg font-extrabold text-slate-800 font-heading">
                 {searchQuery ? 'No se encontraron resultados' : 'Aún no hay proyectos publicados'}
               </h3>
-              <p className="text-gray-500 text-xs leading-relaxed">
+              <p className="text-slate-500 text-xs leading-relaxed">
                 {searchQuery 
                   ? `No hay proyectos que coincidan con "${searchQuery}". Intenta con otros términos.`
                   : '¿Necesitas ayuda con un proyecto o materia? Crea una publicación y conecta con compañeros.'}
               </p>
               <button 
                 onClick={onOpenPublicationModal}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-blue-100 cursor-pointer"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-black px-6 py-3 rounded-2xl transition-all shadow-lg shadow-blue-500/20 cursor-pointer hover:scale-105"
               >
                 + Publicar Un Proyecto
               </button>
@@ -494,13 +534,13 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
           )
         )}
 
-        {/* TAB 3: MIS PUBLICACIONES (SERVICIOS Y PROYECTOS PROPIOS DEL USUARIO) */}
+        {/* TAB 3: MIS PUBLICACIONES */}
         {!loading && activeTab === 'mis-publicaciones' && (
           <div className="space-y-8 text-left">
             
             {/* MIS PROYECTOS */}
             <div className="space-y-4">
-              <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-200 pb-2 flex items-center gap-2">
+              <h3 className="text-lg font-black text-slate-900 border-b border-slate-200/80 pb-3 flex items-center gap-2 font-heading">
                 <span>🚀</span> Mis Proyectos ({myProjects.length})
               </h3>
 
@@ -512,55 +552,55 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                     const isRejected = p.estado === 'rechazado';
 
                     return (
-                      <div key={p._id || p.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 relative">
+                      <div key={p._id || p.id} className="glass-card rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-4 relative border border-slate-200 hover:border-indigo-300 transition-all duration-300">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                            <span className="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
                               {p.categoriaPrincipal}
                             </span>
                             
                             {/* BADGE DE ESTADO */}
                             {isPending && (
-                              <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
-                                ⏳ En Revisión
+                              <span className="text-xs font-extrabold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 animate-pulse flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-amber-500"></span> ⏳ En Revisión
                               </span>
                             )}
                             {isApproved && (
-                              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                                ✅ Aprobado & Público
+                              <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> ✅ Aprobado & Público
                               </span>
                             )}
                             {isRejected && (
-                              <span className="text-xs font-extrabold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-                                ⚠️ Rechazado / Corrección
+                              <span className="text-xs font-extrabold text-rose-800 bg-rose-50 px-3 py-1 rounded-full border border-rose-200 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-rose-500"></span> ⚠️ Rechazado
                               </span>
                             )}
                           </div>
 
-                          <h4 className="font-extrabold text-gray-900 text-lg">{p.titulo}</h4>
-                          <p className="text-xs text-gray-600 leading-relaxed">{p.descripcion}</p>
+                          <h4 className="font-extrabold text-slate-900 text-lg font-heading">{p.titulo}</h4>
+                          <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/80 p-3.5 rounded-2xl border border-slate-100">{p.descripcion}</p>
 
                           {/* MOTIVO DE RECHAZO SI APLICA */}
                           {isRejected && (
-                            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-900">
-                              <span className="font-bold text-rose-700 block mb-0.5">📌 Motivo indicado por el Administrador:</span>
+                            <div className="bg-rose-50 border border-rose-200/80 p-4 rounded-2xl text-xs text-rose-900">
+                              <span className="font-extrabold text-rose-700 block mb-1">📌 Motivo indicado por el Administrador:</span>
                               "{p.motivoRechazo || 'Información no adecuada o incompleta'}"
-                              <span className="block mt-1 text-[11px] font-semibold text-rose-800">
-                                👉 Puedes hacer clic en "Editar" para corregirlo y enviarlo a revisión nuevamente.
+                              <span className="block mt-2 text-[11px] font-bold text-rose-800">
+                                👉 Haz clic en "Editar Proyecto" para realizar los ajustes necesarios.
                               </span>
                             </div>
                           )}
 
                           {p.mediaUrl && p.mediaUrl.startsWith('data:image') && (
                             <div>
-                              <img src={p.mediaUrl} alt={p.titulo} className="w-full h-36 object-cover rounded-xl border border-gray-100" />
+                              <img src={p.mediaUrl} alt={p.titulo} className="w-full h-40 object-cover rounded-2xl border border-slate-200 shadow-sm" />
                             </div>
                           )}
 
                           {p.etiquetas && p.etiquetas.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 pt-2">
                               {p.etiquetas.map((t, i) => (
-                                <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-md font-semibold">
+                                <span key={i} className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs px-2.5 py-1 rounded-lg font-bold">
                                   {t}
                                 </span>
                               ))}
@@ -569,17 +609,17 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         </div>
 
                         {/* BOTONES DE EDICIÓN Y ELIMINACIÓN */}
-                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                           <button
                             onClick={() => onEditPublication(p, 'proyecto')}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-1.5 hover:scale-105"
                           >
                             <span>✏️</span> Editar Proyecto
                           </button>
 
                           <button
                             onClick={() => handleDeleteProject(p._id || p.id)}
-                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-extrabold text-xs px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-extrabold text-xs px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
                           >
                             <span>🗑️</span> Eliminar
                           </button>
@@ -589,13 +629,13 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 italic py-4">No has publicado ningún proyecto todavía.</p>
+                <p className="text-xs text-slate-400 italic py-4">No has publicado ningún proyecto todavía.</p>
               )}
             </div>
 
             {/* MIS SERVICIOS */}
             <div className="space-y-4 pt-4">
-              <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-200 pb-2 flex items-center gap-2">
+              <h3 className="text-lg font-black text-slate-900 border-b border-slate-200/80 pb-3 flex items-center gap-2 font-heading">
                 <span>🤝</span> Mis Servicios ({myServices.length})
               </h3>
 
@@ -607,41 +647,41 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                     const isRejected = s.estado === 'rechazado';
 
                     return (
-                      <div key={s._id || s.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 relative">
+                      <div key={s._id || s.id} className="glass-card rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-4 relative border border-slate-200 hover:border-indigo-300 transition-all duration-300">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                            <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                               {s.semestre}
                             </span>
 
                             {/* BADGE DE ESTADO */}
                             {isPending && (
-                              <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
-                                ⏳ En Revisión
+                              <span className="text-xs font-extrabold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 animate-pulse flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-amber-500"></span> ⏳ En Revisión
                               </span>
                             )}
                             {isApproved && (
-                              <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                                ✅ Aprobado & Público
+                              <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> ✅ Aprobado & Público
                               </span>
                             )}
                             {isRejected && (
-                              <span className="text-xs font-extrabold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-                                ⚠️ Rechazado / Corrección
+                              <span className="text-xs font-extrabold text-rose-800 bg-rose-50 px-3 py-1 rounded-full border border-rose-200 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-rose-500"></span> ⚠️ Rechazado
                               </span>
                             )}
                           </div>
 
-                          <h4 className="font-extrabold text-gray-900 text-lg">{s.areaEspecialidad}</h4>
-                          <p className="text-xs text-gray-600 leading-relaxed">{s.descripcion}</p>
+                          <h4 className="font-extrabold text-slate-900 text-lg font-heading">{s.areaEspecialidad}</h4>
+                          <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/80 p-3.5 rounded-2xl border border-slate-100">{s.descripcion}</p>
 
                           {/* MOTIVO DE RECHAZO SI APLICA */}
                           {isRejected && (
-                            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-900">
-                              <span className="font-bold text-rose-700 block mb-0.5">📌 Motivo indicado por el Administrador:</span>
+                            <div className="bg-rose-50 border border-rose-200/80 p-4 rounded-2xl text-xs text-rose-900">
+                              <span className="font-extrabold text-rose-700 block mb-1">📌 Motivo indicado por el Administrador:</span>
                               "{s.motivoRechazo || 'Información no adecuada o incompleta'}"
-                              <span className="block mt-1 text-[11px] font-semibold text-rose-800">
-                                👉 Puedes hacer clic en "Editar" para corregirlo y enviarlo a revisión nuevamente.
+                              <span className="block mt-2 text-[11px] font-bold text-rose-800">
+                                👉 Haz clic en "Editar Servicio" para corregirlo y enviarlo a revisión nuevamente.
                               </span>
                             </div>
                           )}
@@ -649,7 +689,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                           {s.etiquetas && s.etiquetas.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 pt-2">
                               {s.etiquetas.map((t, i) => (
-                                <span key={i} className="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded-md font-semibold">
+                                <span key={i} className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs px-2.5 py-1 rounded-lg font-bold">
                                   {t}
                                 </span>
                               ))}
@@ -658,17 +698,17 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         </div>
 
                         {/* BOTONES DE EDICIÓN Y ELIMINACIÓN */}
-                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                           <button
                             onClick={() => onEditPublication(s, 'servicio')}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-1.5 hover:scale-105"
                           >
                             <span>✏️</span> Editar Servicio
                           </button>
 
                           <button
                             onClick={() => handleDeleteService(s._id || s.id)}
-                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-extrabold text-xs px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-extrabold text-xs px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
                           >
                             <span>🗑️</span> Eliminar
                           </button>
@@ -678,7 +718,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 italic py-4">No has publicado ningún servicio todavía.</p>
+                <p className="text-xs text-slate-400 italic py-4">No has publicado ningún servicio todavía.</p>
               )}
             </div>
 
