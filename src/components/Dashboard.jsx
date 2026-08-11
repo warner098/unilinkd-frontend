@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, initialDashboardTab = 'servicios' }) {
+export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, onRequestHelp, initialDashboardTab = 'servicios' }) {
   const [activeTab, setActiveTab] = useState(initialDashboardTab);
   
   const [services, setServices] = useState([]);
@@ -376,7 +376,10 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                   </div>
 
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
-                    <button className="flex-1 btn-accent-gradient font-black text-xs py-2.5 rounded-xl cursor-pointer text-center">
+                    <button 
+                      onClick={() => onRequestHelp && onRequestHelp(est)}
+                      className="flex-1 btn-accent-gradient font-black text-xs py-2.5 rounded-xl cursor-pointer text-center hover:scale-[1.02] transition-transform"
+                    >
                       Contactar por Ayuda
                     </button>
 

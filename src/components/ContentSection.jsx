@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, user }) {
+export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, user }) {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [dbProjects, setDbProjects] = useState([]);
   const [dbServices, setDbServices] = useState([]);
@@ -407,8 +407,11 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         </button>
                       )}
 
-                      <button className="btn-accent-gradient font-black px-4 py-2 rounded-xl text-xs cursor-pointer">
-                        Contactar
+                      <button 
+                        onClick={() => onRequestHelp && onRequestHelp(student)}
+                        className="btn-accent-gradient font-black px-4 py-2 rounded-xl text-xs cursor-pointer hover:scale-105 transition-transform"
+                      >
+                        Contactar por Ayuda
                       </button>
                     </div>
                   </div>

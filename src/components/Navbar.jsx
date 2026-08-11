@@ -7,6 +7,7 @@ export default function Navbar({
   onOpenAdmin, 
   onOpenNotifications, 
   onOpenMyPublications, 
+  onOpenChatHub,
   user, 
   pendingCount = 0, 
   unreadNotifCount = 0 
@@ -100,6 +101,17 @@ export default function Navbar({
                   className="btn-ghost-glow text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-2 cursor-pointer"
                 >
                   <span className="text-sm">📂</span> Mis Publicaciones
+                </button>
+              )}
+
+              {/* BOTÓN CHAT HUB & MENSAJES */}
+              {onOpenChatHub && (
+                <button
+                  onClick={onOpenChatHub}
+                  title="Abrir Chat Hub & Mensajes"
+                  className="btn-ghost-glow text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="text-sm">💬</span> Mensajes
                 </button>
               )}
 

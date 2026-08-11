@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) {
+export default function NotificationsModal({ isOpen, onClose, user, onUpdate, onOpenChatRequest }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -10,10 +10,7 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
     setLoading(true);
     try {
       const userId = user.id || user._id;
-      const userName = user.nombre;
-      const url = `${API_BASE_URL}/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName || '')}`;
-      
-      const res = await fetch(url);
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${userId}`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data);
@@ -22,13 +19,14 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
       }
     } catch (err) {
       console.error('Error al obtener notificaciones:', err);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user) {
       fetchNotifications();
     }
   }, [isOpen, user]);
@@ -37,7 +35,7 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
 
   const handleMarkAsRead = async (id) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/notifications/${id}/leido`, {
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
         method: 'PUT'
       });
       if (res.ok) {
@@ -47,7 +45,7 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
         if (onUpdate) onUpdate();
       }
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error al marcar notif como leída:', err);
     }
   };
 
@@ -61,98 +59,95 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
         if (onUpdate) onUpdate();
       }
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error al eliminar notificación:', err);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in text-left">
+      <div className="bento-card-glow bg-[#0C0F19]/95 text-white border border-white/10 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         
-        {/* BOTÓN CERRAR */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
         >
           ✕
         </button>
 
-        {/* ENCABEZADO */}
         <div className="text-center space-y-2 mb-6">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-indigo-700 text-xs font-bold">
-            <span>🔔 Centro de Avisos</span>
+          <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 rounded-full text-indigo-300 text-xs font-mono-code font-bold">
+            <span>🔔 CENTRO DE NOTIFICACIONES</span>
           </div>
-          <h3 className="text-2xl font-extrabold text-[#0F172A]">
-            Tus Notificaciones
+          <h3 className="text-2xl font-black text-white font-heading">
+            Tus Avisos Universitarios
           </h3>
-          <p className="text-xs text-gray-500 max-w-xs mx-auto">
-            Estado de revisión de tus publicaciones y respuestas del equipo de moderación.
+          <p className="text-xs text-slate-400">
+            Novedades sobre tus solicitudes, peticiones de ayuda y publicaciones.
           </p>
         </div>
 
-        {/* CONTENIDO DE NOTIFICACIONES */}
         {loading ? (
-          <div className="py-12 text-center text-xs font-semibold text-gray-400">
-            Cargando notificaciones...
-          </div>
+          <div className="py-12 text-center text-xs font-bold text-slate-400">Cargando notificaciones...</div>
         ) : notifications.length > 0 ? (
           <div className="space-y-3">
             {notifications.map((n) => {
-              const isApproved = n.tipo === 'aprobado';
-              const isRejected = n.tipo === 'rechazado';
+              const isRejected = n.tipo === 'publicacion_rechazada' || n.tipo === 'peticion_rechazada';
+              const isApproved = n.tipo === 'publicacion_aprobada' || n.tipo === 'peticion_aceptada';
+              const isRequest = n.tipo === 'peticion_recibida' || n.tipo === 'peticion_aceptada' || n.requestId;
 
               return (
                 <div
                   key={n._id || n.id}
-                  className={`p-4 rounded-2xl border transition-all text-left relative flex flex-col justify-between space-y-2 ${
-                    n.leido ? 'bg-gray-50 border-gray-200 opacity-85' : 'bg-indigo-50/50 border-indigo-200 shadow-xs'
+                  className={`p-4 rounded-2xl border transition-all text-left space-y-3 ${
+                    !n.leido
+                      ? 'bg-slate-900/90 border-indigo-500/40 shadow-lg shadow-indigo-500/10'
+                      : 'bg-slate-950/50 border-white/5'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5">
-                      <span className="text-xl">
-                        {isApproved ? '🎉' : isRejected ? '⚠️' : 'ℹ️'}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">
+                        {isApproved ? '✅' : isRejected ? '⚠️' : '📩'}
                       </span>
-                      <div>
-                        <h4 className={`text-sm font-extrabold ${
-                          isApproved ? 'text-emerald-800' : isRejected ? 'text-rose-800' : 'text-slate-800'
-                        }`}>
-                          {n.titulo}
-                        </h4>
-                        <span className="text-[10px] text-gray-400 font-medium">
-                          {new Date(n.fechaCreacion).toLocaleString()}
-                        </span>
-                      </div>
+                      <h4 className="text-xs font-extrabold text-white font-heading">{n.titulo}</h4>
                     </div>
 
                     {!n.leido && (
-                      <span className="bg-indigo-600 w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1" title="No leída"></span>
+                      <span className="bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                        Nuevo
+                      </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-gray-700 leading-relaxed bg-white/80 p-3 rounded-xl border border-gray-100">
+                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-white/5">
                     {n.mensaje}
                   </p>
 
-                  {isRejected && n.motivo && (
-                    <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-900 font-medium">
-                      <span className="font-bold text-rose-700 block mb-0.5">📌 Razón del Rechazo / Corrección Solicitada:</span>
-                      "{n.motivo}"
-                    </div>
+                  {isRequest && onOpenChatRequest && (
+                    <button
+                      onClick={() => {
+                        handleMarkAsRead(n._id || n.id);
+                        onOpenChatRequest(n.requestId);
+                        onClose();
+                      }}
+                      className="w-full btn-accent-gradient font-black text-xs py-2 rounded-xl cursor-pointer text-center flex items-center justify-center gap-1.5"
+                    >
+                      <span>💬 Abrir Chat / Petición →</span>
+                    </button>
                   )}
 
-                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-100/60">
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-white/5">
                     {!n.leido && (
                       <button
                         onClick={() => handleMarkAsRead(n._id || n.id)}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                        className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer"
                       >
-                        ✓ Marcar como leída
+                        ✓ Marcar leída
                       </button>
                     )}
                     <button
                       onClick={() => handleDeleteNotification(n._id || n.id)}
-                      className="text-[11px] font-bold text-gray-400 hover:text-rose-600 cursor-pointer ml-2"
+                      className="text-[11px] font-bold text-slate-500 hover:text-rose-400 cursor-pointer ml-2"
                     >
                       Eliminar
                     </button>
@@ -163,10 +158,10 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate }) 
           </div>
         ) : (
           <div className="py-12 text-center space-y-2">
-            <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+            <div className="w-12 h-12 bg-slate-900 text-slate-400 border border-white/10 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
               🔔
             </div>
-            <p className="text-xs font-semibold text-gray-500">No tienes notificaciones pendientes.</p>
+            <p className="text-xs font-semibold text-slate-400">No tienes notificaciones pendientes.</p>
           </div>
         )}
 

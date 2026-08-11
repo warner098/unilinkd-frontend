@@ -13,6 +13,8 @@ import AdminTagsModal from './components/AdminTagsModal';
 import NotificationsModal from './components/NotificationsModal';
 import EditPublicationModal from './components/EditPublicationModal';
 import ToastContainer from './components/ToastContainer';
+import RequestHelpModal from './components/RequestHelpModal';
+import ChatHubModal from './components/ChatHubModal';
 
 import { API_BASE_URL } from './config/api';
 
@@ -36,6 +38,36 @@ function App() {
   const [isPublicationOpen, setIsPublicationOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  
+  // Modal de Solicitud de Ayuda
+  const [isRequestHelpOpen, setIsRequestHelpOpen] = useState(false);
+  const [selectedServiceForHelp, setSelectedServiceForHelp] = useState(null);
+
+  // Modal de Chat Hub Estilo Discord
+  const [isChatHubOpen, setIsChatHubOpen] = useState(false);
+  const [chatHubInitialRequestId, setChatHubInitialRequestId] = useState(null);
+
+  const handleOpenRequestHelp = (service) => {
+    if (!user) {
+      setAuthTab('login');
+      setIsAuthOpen(true);
+      showToast('Por favor inicia sesión para contactar por ayuda.', 'warning');
+      return;
+    }
+    setSelectedServiceForHelp(service);
+    setIsRequestHelpOpen(true);
+  };
+
+  const handleOpenChatHub = (requestId = null) => {
+    if (!user) {
+      setAuthTab('login');
+      setIsAuthOpen(true);
+      showToast('Por favor inicia sesión para ver tus mensajes.', 'warning');
+      return;
+    }
+    setChatHubInitialRequestId(requestId);
+    setIsChatHubOpen(true);
+  };
   
   // Modal de Edición de Publicaciones
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -240,6 +272,7 @@ function App() {
         onOpenAdmin={handleOpenAdminModal}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenMyPublications={() => setDashboardTab('mis-publicaciones')}
+        onOpenChatHub={() => handleOpenChatHub()}
         pendingCount={pendingCount}
         unreadNotifCount={unreadNotifCount}
       />
@@ -272,6 +305,7 @@ function App() {
           onOpenPublicationModal={handleOpenPublicationModal}
           onOpenAdmin={handleOpenAdminModal}
           onEditPublication={handleOpenEditPublication}
+          onRequestHelp={handleOpenRequestHelp}
           initialDashboardTab={dashboardTab}
         />
       ) : (
@@ -284,6 +318,7 @@ function App() {
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
               onOpenPublicationModal={handleOpenPublicationModal}
+              onRequestHelp={handleOpenRequestHelp}
               user={user}
             />
             <HowItWorks />
@@ -333,6 +368,7 @@ function App() {
         onClose={() => setIsNotificationsOpen(false)}
         user={user}
         onUpdate={fetchUserNotificationsCount}
+        onOpenChatRequest={(requestId) => handleOpenChatHub(requestId)}
       />
 
       {/* Modal Edición de Publicaciones */}
@@ -343,6 +379,28 @@ function App() {
         itemType={editingItemType}
         user={user}
         onSuccess={handlePublicationSuccess}
+      />
+
+      {/* Modal Redactar Petición de Ayuda */}
+      <RequestHelpModal
+        isOpen={isRequestHelpOpen}
+        onClose={() => setIsRequestHelpOpen(false)}
+        service={selectedServiceForHelp}
+        user={user}
+        showToast={showToast}
+        onSuccess={() => {
+          fetchUserNotificationsCount();
+          handleOpenChatHub();
+        }}
+      />
+
+      {/* Modal Chat Hub & Mensajes Estilo Discord */}
+      <ChatHubModal
+        isOpen={isChatHubOpen}
+        onClose={() => setIsChatHubOpen(false)}
+        user={user}
+        initialRequestId={chatHubInitialRequestId}
+        showToast={showToast}
       />
 
       {/* TOAST CONTAINER GLOBAL */}
