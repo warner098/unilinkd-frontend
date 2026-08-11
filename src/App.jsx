@@ -12,6 +12,7 @@ import CreatePublicationModal from './components/CreatePublicationModal';
 import AdminTagsModal from './components/AdminTagsModal';
 import NotificationsModal from './components/NotificationsModal';
 import EditPublicationModal from './components/EditPublicationModal';
+import ToastContainer from './components/ToastContainer';
 
 import { API_BASE_URL } from './config/api';
 
@@ -19,6 +20,16 @@ function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState('login');
   const [user, setUser] = useState(null);
+  
+  // SISTEMA DE NOTIFICACIONES TOAST FLOTANTES
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success', icon = '✨') => {
+    setToast({ message, type, icon });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
   
   // Modales
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -269,6 +280,7 @@ function App() {
           setUser(userData);
           setRefreshKey((prev) => prev + 1);
         }}
+        showToast={showToast}
       />
 
       {/* Modal Perfil Personal */}
@@ -311,6 +323,9 @@ function App() {
         user={user}
         onSuccess={handlePublicationSuccess}
       />
+
+      {/* TOAST CONTAINER GLOBAL */}
+      <ToastContainer toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
