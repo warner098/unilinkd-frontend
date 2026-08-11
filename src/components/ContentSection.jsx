@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, user }) {
+export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, onOpenServiceChats, user }) {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [dbProjects, setDbProjects] = useState([]);
   const [dbServices, setDbServices] = useState([]);
@@ -407,12 +407,21 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         </button>
                       )}
 
-                      <button 
-                        onClick={() => onRequestHelp && onRequestHelp(student)}
-                        className="btn-accent-gradient font-black px-4 py-2 rounded-xl text-xs cursor-pointer hover:scale-105 transition-transform"
-                      >
-                        Contactar por Ayuda
-                      </button>
+                      {user && canDelete(student) ? (
+                        <button 
+                          onClick={() => onOpenServiceChats && onOpenServiceChats(student._id || student.id)}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs px-4 py-2 rounded-xl cursor-pointer hover:scale-105 transition-transform flex items-center gap-1.5 shadow-lg shadow-indigo-600/30"
+                        >
+                          <span>💬</span> Ver Peticiones del Servicio
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => onRequestHelp && onRequestHelp(student)}
+                          className="btn-accent-gradient font-black px-4 py-2 rounded-xl text-xs cursor-pointer hover:scale-105 transition-transform"
+                        >
+                          Contactar por Ayuda
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, showToast }) {
+export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, filterServiceId, showToast }) {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,13 +36,24 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       if (res.ok) {
         const data = await res.json();
         
-        // Para el tutor, filtrar peticiones rechazadas para que desaparezcan de su lista
-        const activeData = data.filter(r => {
+        // Para el tutor, filtrar peticiones rechazadas
+        let activeData = data.filter(r => {
           if (r.autorServicioId === userId && r.estado === 'rechazado') {
             return false;
           }
           return true;
         });
+
+        // Si se especificó un filtro de servicio particular desde la tarjeta del servicio
+        if (filterServiceId) {
+          const serviceSpecific = activeData.filter(r => 
+            r.autorServicioId === userId && (r.servicioId === filterServiceId || r.servicioId?.toString() === filterServiceId.toString())
+          );
+          // Si existen peticiones para ese servicio, priorizarlas
+          if (serviceSpecific.length > 0 && !activeSelectedIdRef.current) {
+            activeSelectedIdRef.current = serviceSpecific[0]._id || serviceSpecific[0].id;
+          }
+        }
 
         setRequests(activeData);
 
@@ -83,11 +94,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       }
       fetchRequests();
 
-      // Polling continuo cada 3s para chat en vivo sin resetear la selección del usuario
+      // Polling continuo cada 3s para chat en vivo
       const interval = setInterval(fetchRequests, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, user, initialRequestId]);
+  }, [isOpen, user, initialRequestId, filterServiceId]);
 
   useEffect(() => {
     // Scroll al final del chat cuando llegan nuevos mensajes
@@ -137,7 +148,6 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       setShowRejectInput(false);
 
       if (nuevoEstado === 'rechazado') {
-        // Remover de la lista e ir a la siguiente petición
         const remaining = requests.filter(r => (r._id || r.id) !== currentId);
         setRequests(remaining);
 
@@ -206,7 +216,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     reader.readAsDataURL(file);
   };
 
-  // Peticiones agrupadas
+  // Peticiones agrupadas por rol
   const peticionesComoTutor = requests.filter(r => r.autorServicioId === currentUserId && r.estado !== 'rechazado');
   const peticionesComoSolicitante = requests.filter(r => r.solicitanteId === currentUserId);
 
@@ -223,7 +233,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         </button>
 
         {/* ======================================================== */}
-        {/* COLUMNA IZQUIERDA: ESTILO CANALES / CHATS DISCORD          */}
+        {/* COLUMNA IZQUIERDA: CANALES Y CHATS POR SERVICIO DISCORD    */}
         {/* ======================================================== */}
         <div className="w-full md:w-80 bg-[#07090F] border-r border-white/10 flex flex-col h-full shrink-0">
           
@@ -239,11 +249,13 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
           <div className="flex-1 overflow-y-auto p-3 space-y-6">
             
-            {/* GRUPO 1: PETICIONES RECIBIDAS (COMO TUTOR) */}
+            {/* GRUPO 1: PETICIONES RECIBIDAS (COMO TUTOR DE SERVICIOS) */}
             <div className="space-y-2">
-              <span className="text-[10px] font-mono-code font-bold text-slate-400 uppercase tracking-widest px-2">
-                📥 Recibidas en mis servicios ({peticionesComoTutor.length})
-              </span>
+              <div className="flex items-center justify-between px-2">
+                <span className="text-[10px] font-mono-code font-bold text-slate-400 uppercase tracking-widest">
+                  📥 Peticiones en mis Servicios ({peticionesComoTutor.length})
+                </span>
+              </div>
 
               {peticionesComoTutor.length > 0 ? (
                 <div className="space-y-1">
@@ -251,6 +263,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                     const reqId = req._id || req.id;
                     const isSelected = selectedRequest && (selectedRequest._id || selectedRequest.id) === reqId;
                     const isPending = req.estado === 'pendiente';
+                    const isFiltered = filterServiceId && (req.servicioId === filterServiceId || req.servicioId?.toString() === filterServiceId.toString());
 
                     return (
                       <button
@@ -259,6 +272,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         className={`w-full p-3 rounded-2xl flex items-center gap-3 transition-all cursor-pointer text-left ${
                           isSelected
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-white/10'
+                            : isFiltered
+                            ? 'bg-indigo-500/15 text-slate-200 border border-indigo-500/30'
                             : 'hover:bg-slate-900/90 text-slate-300 border border-transparent'
                         }`}
                       >
@@ -276,6 +291,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         </div>
 
                         <div className="flex-1 overflow-hidden">
+                          {/* ETIQUETA CLARA DEL SERVICIO AL QUE CORRESPONDE */}
+                          <span className="text-[9px] font-extrabold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-md block truncate mb-1 border border-indigo-500/30">
+                            📌 Servicio: {req.servicioTitulo}
+                          </span>
+
                           <h4 className="text-xs font-bold truncate">{req.tituloPeticion}</h4>
                           <p className="text-[11px] text-slate-400 truncate">De: {req.solicitanteNombre}</p>
                         </div>
@@ -284,11 +304,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   })}
                 </div>
               ) : (
-                <p className="text-[11px] text-slate-500 italic px-2">No tienes peticiones activas.</p>
+                <p className="text-[11px] text-slate-500 italic px-2">No tienes peticiones para este servicio.</p>
               )}
             </div>
 
-            {/* GRUPO 2: MIS SOLICITUDES ENVIADAS (COMO SOLICITANTE) */}
+            {/* GRUPO 2: MIS SOLICITUDES ENVIADAS (COMO SOLICITANTE DE OTRO TUTOR) */}
             <div className="space-y-2">
               <span className="text-[10px] font-mono-code font-bold text-slate-400 uppercase tracking-widest px-2">
                 📤 Mis Solicitudes Enviadas ({peticionesComoSolicitante.length})
@@ -321,6 +341,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         </div>
 
                         <div className="flex-1 overflow-hidden">
+                          <span className="text-[9px] font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md block truncate mb-1 border border-white/5">
+                            Servicio: {req.servicioTitulo}
+                          </span>
                           <h4 className="text-xs font-bold truncate">{req.tituloPeticion}</h4>
                           <p className="text-[11px] text-slate-400 truncate">Tutor: {req.autorServicioNombre}</p>
                         </div>
@@ -373,7 +396,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                 <div className="bento-card p-5 space-y-3 bg-slate-950/60 border border-white/10">
                   <div className="flex items-center justify-between border-b border-white/5 pb-2">
                     <span className="text-xs font-mono-code font-bold text-indigo-300 uppercase tracking-wider">
-                      📌 Propuesta de Ayuda Inicial
+                      📌 Propuesta de Ayuda para {selectedRequest.servicioTitulo}
                     </span>
                     <span className="text-[11px] text-slate-400 font-mono-code">
                       {new Date(selectedRequest.createdAt).toLocaleDateString()}
@@ -461,7 +484,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                     </div>
                   )}
 
-                  {/* SI LA PETICIÓN FUE RECHAZADA (SOLO VISIBLE PARA EL SOLICITANTE) */}
+                  {/* SI LA PETICIÓN FUE RECHAZADA */}
                   {selectedRequest.estado === 'rechazado' && selectedRequest.solicitanteId === currentUserId && (
                     <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl text-xs text-rose-200">
                       <span className="font-extrabold text-rose-400 block">⚠️ Petición Rechazada por el tutor:</span>

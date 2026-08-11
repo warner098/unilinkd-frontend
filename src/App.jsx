@@ -46,6 +46,7 @@ function App() {
   // Modal de Chat Hub Estilo Discord
   const [isChatHubOpen, setIsChatHubOpen] = useState(false);
   const [chatHubInitialRequestId, setChatHubInitialRequestId] = useState(null);
+  const [chatHubFilterServiceId, setChatHubFilterServiceId] = useState(null);
 
   const handleOpenRequestHelp = (service) => {
     if (!user) {
@@ -58,7 +59,7 @@ function App() {
     setIsRequestHelpOpen(true);
   };
 
-  const handleOpenChatHub = (requestId = null) => {
+  const handleOpenChatHub = (requestId = null, filterServiceId = null) => {
     if (!user) {
       setAuthTab('login');
       setIsAuthOpen(true);
@@ -66,6 +67,7 @@ function App() {
       return;
     }
     setChatHubInitialRequestId(requestId);
+    setChatHubFilterServiceId(filterServiceId);
     setIsChatHubOpen(true);
   };
   
@@ -306,6 +308,7 @@ function App() {
           onOpenAdmin={handleOpenAdminModal}
           onEditPublication={handleOpenEditPublication}
           onRequestHelp={handleOpenRequestHelp}
+          onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
           initialDashboardTab={dashboardTab}
         />
       ) : (
@@ -319,6 +322,7 @@ function App() {
               setActiveTab={setActiveTab} 
               onOpenPublicationModal={handleOpenPublicationModal}
               onRequestHelp={handleOpenRequestHelp}
+              onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
               user={user}
             />
             <HowItWorks />
@@ -400,6 +404,7 @@ function App() {
         onClose={() => setIsChatHubOpen(false)}
         user={user}
         initialRequestId={chatHubInitialRequestId}
+        filterServiceId={chatHubFilterServiceId}
         showToast={showToast}
       />
 
