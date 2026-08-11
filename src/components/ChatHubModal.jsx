@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../config/api';
 export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, showToast }) {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedRequestId, setSelectedRequestId] = useState(initialRequestId);
   const [loading, setLoading] = useState(true);
 
   // Estado del mensaje de chat
@@ -17,6 +18,12 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
   const chatBottomRef = useRef(null);
 
+  useEffect(() => {
+    if (initialRequestId) {
+      setSelectedRequestId(initialRequestId);
+    }
+  }, [initialRequestId]);
+
   // Cargar peticiones del usuario
   const fetchRequests = async () => {
     if (!user) return;
@@ -26,19 +33,34 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       const res = await fetch(`${API_BASE_URL}/api/requests/user/${userId}`);
       if (res.ok) {
         const data = await res.json();
-        setRequests(data);
+        
+        // Para el tutor, filtrar peticiones rechazadas para que desaparezcan de su lista
+        const activeData = data.filter(r => {
+          if (r.autorServicioId === userId && r.estado === 'rechazado') {
+            return false;
+          }
+          return true;
+        });
 
-        // Si se especificó un ID inicial desde notificaciones, seleccionarlo
-        if (initialRequestId) {
-          const found = data.find(r => r._id === initialRequestId || r.id === initialRequestId);
-          if (found) setSelectedRequest(found);
-          else if (data.length > 0) setSelectedRequest(data[0]);
-        } else if (!selectedRequest && data.length > 0) {
-          setSelectedRequest(data[0]);
-        } else if (selectedRequest) {
-          // Mantener actualizada la petición seleccionada
-          const updated = data.find(r => (r._id || r.id) === (selectedRequest._id || selectedRequest.id));
-          if (updated) setSelectedRequest(updated);
+        setRequests(activeData);
+
+        // Seleccionar respetando la elección manual del usuario
+        if (selectedRequestId) {
+          const found = activeData.find(r => (r._id || r.id) === selectedRequestId);
+          if (found) {
+            setSelectedRequest(found);
+          } else if (activeData.length > 0) {
+            setSelectedRequest(activeData[0]);
+            setSelectedRequestId(activeData[0]._id || activeData[0].id);
+          } else {
+            setSelectedRequest(null);
+            setSelectedRequestId(null);
+          }
+        } else if (activeData.length > 0) {
+          setSelectedRequest(activeData[0]);
+          setSelectedRequestId(activeData[0]._id || activeData[0].id);
+        } else {
+          setSelectedRequest(null);
         }
       }
     } catch (err) {
@@ -55,10 +77,10 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       const interval = setInterval(fetchRequests, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, user, initialRequestId]);
+  }, [isOpen, user]);
 
   useEffect(() => {
-    // Scroll al final del chat cuando se seleccionan o llegan mensajes
+    // Scroll al final del chat cuando llegan mensajes
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [selectedRequest?.mensajes]);
 
@@ -66,11 +88,20 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
   const currentUserId = user?.id || user?._id;
 
+  const handleSelectRequest = (req) => {
+    const targetId = req._id || req.id;
+    setSelectedRequestId(targetId);
+    setSelectedRequest(req);
+    setShowRejectInput(false);
+  };
+
   // Cambiar estado a ACEPTADO o RECHAZADO
   const handleUpdateStatus = async (nuevoEstado, motivo = '') => {
     if (!selectedRequest) return;
+    const currentId = selectedRequest._id || selectedRequest.id;
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/requests/${selectedRequest._id || selectedRequest.id}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/requests/${currentId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -87,13 +118,28 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         showToast(
           nuevoEstado === 'aceptado'
             ? '✅ ¡Petición Aceptada! El chat en vivo ha sido habilitado.'
-            : '❌ Petición rechazada.',
+            : '🗑️ Petición rechazada y eliminada de tu lista.',
           nuevoEstado === 'aceptado' ? 'success' : 'warning'
         );
       }
 
       setShowRejectInput(false);
-      fetchRequests();
+
+      if (nuevoEstado === 'rechazado') {
+        // Remover de la lista activa e ir a la siguiente inmediatamente
+        const remaining = requests.filter(r => (r._id || r.id) !== currentId);
+        setRequests(remaining);
+        if (remaining.length > 0) {
+          const nextReq = remaining[0];
+          setSelectedRequest(nextReq);
+          setSelectedRequestId(nextReq._id || nextReq.id);
+        } else {
+          setSelectedRequest(null);
+          setSelectedRequestId(null);
+        }
+      } else {
+        fetchRequests();
+      }
     } catch (err) {
       if (showToast) showToast(err.message, 'error');
     }
@@ -148,7 +194,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   };
 
   // Peticiones agrupadas
-  const peticionesComoTutor = requests.filter(r => r.autorServicioId === currentUserId);
+  const peticionesComoTutor = requests.filter(r => r.autorServicioId === currentUserId && r.estado !== 'rechazado');
   const peticionesComoSolicitante = requests.filter(r => r.solicitanteId === currentUserId);
 
   return (
@@ -189,13 +235,14 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
               {peticionesComoTutor.length > 0 ? (
                 <div className="space-y-1">
                   {peticionesComoTutor.map((req) => {
-                    const isSelected = selectedRequest && (selectedRequest._id || selectedRequest.id) === (req._id || req.id);
+                    const reqId = req._id || req.id;
+                    const isSelected = selectedRequest && (selectedRequest._id || selectedRequest.id) === reqId;
                     const isPending = req.estado === 'pendiente';
 
                     return (
                       <button
-                        key={req._id || req.id}
-                        onClick={() => setSelectedRequest(req)}
+                        key={reqId}
+                        onClick={() => handleSelectRequest(req)}
                         className={`w-full p-3 rounded-2xl flex items-center gap-3 transition-all cursor-pointer text-left ${
                           isSelected
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-white/10'
@@ -211,7 +258,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                             </div>
                           )}
                           <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 ${
-                            isPending ? 'bg-amber-400 animate-pulse' : req.estado === 'aceptado' ? 'bg-emerald-400' : 'bg-rose-400'
+                            isPending ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
                           }`}></span>
                         </div>
 
@@ -224,7 +271,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   })}
                 </div>
               ) : (
-                <p className="text-[11px] text-slate-500 italic px-2">No has recibido peticiones todavía.</p>
+                <p className="text-[11px] text-slate-500 italic px-2">No tienes peticiones activas.</p>
               )}
             </div>
 
@@ -237,13 +284,14 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
               {peticionesComoSolicitante.length > 0 ? (
                 <div className="space-y-1">
                   {peticionesComoSolicitante.map((req) => {
-                    const isSelected = selectedRequest && (selectedRequest._id || selectedRequest.id) === (req._id || req.id);
+                    const reqId = req._id || req.id;
+                    const isSelected = selectedRequest && (selectedRequest._id || selectedRequest.id) === reqId;
                     const isPending = req.estado === 'pendiente';
 
                     return (
                       <button
-                        key={req._id || req.id}
-                        onClick={() => setSelectedRequest(req)}
+                        key={reqId}
+                        onClick={() => handleSelectRequest(req)}
                         className={`w-full p-3 rounded-2xl flex items-center gap-3 transition-all cursor-pointer text-left ${
                           isSelected
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-white/10'
@@ -386,7 +434,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                               onClick={() => handleUpdateStatus('rechazado', rejectionReason)}
                               className="bg-rose-600 text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer"
                             >
-                              Confirmar Rechazo
+                              Confirmar Rechazo y Eliminar
                             </button>
                             <button
                               onClick={() => setShowRejectInput(false)}
@@ -400,10 +448,10 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                     </div>
                   )}
 
-                  {/* SI LA PETICIÓN FUE RECHAZADA */}
-                  {selectedRequest.estado === 'rechazado' && (
+                  {/* SI LA PETICIÓN FUE RECHAZADA (SOLO VISIBLE PARA EL SOLICITANTE) */}
+                  {selectedRequest.estado === 'rechazado' && selectedRequest.solicitanteId === currentUserId && (
                     <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl text-xs text-rose-200">
-                      <span className="font-extrabold text-rose-400 block">⚠️ Petición Rechazada:</span>
+                      <span className="font-extrabold text-rose-400 block">⚠️ Petición Rechazada por el tutor:</span>
                       "{selectedRequest.motivoRechazo || 'Información no adecuada'}"
                     </div>
                   )}
