@@ -97,7 +97,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
     });
   };
 
-  // ENVÍO DE DATOS AL BACKEND
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -121,14 +120,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
         throw new Error(data.msg || 'Ocurrió un error inesperado');
       }
 
-      // Guardamos token y usuario en localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      alert(activeTab === 'login' ? '¡Sesión iniciada con éxito!' : '¡Cuenta creada correctamente!');
+      alert(activeTab === 'login' ? '¡Sesión iniciada con éxito! ✨' : '¡Cuenta creada correctamente! 🎉');
       setLoading(false);
       
-      // Actualización reactiva inmediata sin recargar página
       if (onLoginSuccess) {
         onLoginSuccess(data.user);
       }
@@ -141,37 +138,37 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+      <div className="bento-card-glow bg-[#0C0F19]/95 text-white border border-white/10 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
         >
           ✕
         </button>
 
         <div className="text-center space-y-2 mb-6">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-indigo-700 text-xs font-semibold">
-            <span>🎓 Comunidad UniLinkd</span>
+          <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 rounded-full text-indigo-300 text-xs font-mono-code font-bold">
+            <span>🎓 COMUNIDAD UNILINKD</span>
           </div>
-          <h3 className="text-2xl font-extrabold text-[#0F172A]">
+          <h3 className="text-2xl sm:text-3xl font-black text-white font-heading">
             {activeTab === 'login' ? '¡Hola de nuevo!' : 'Crea tu cuenta'}
           </h3>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-400">
             {activeTab === 'login' 
-              ? 'Ingresa tus credenciales para acceder a la red.' 
+              ? 'Ingresa tus credenciales para acceder a la red universitaria.' 
               : 'Conecta con compañeros y empieza a sumar experiencia.'}
           </p>
         </div>
 
-        {/* PESTAÑAS LOGIN / REGISTRO */}
-        <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+        {/* PESTAÑAS ENCAPSULADAS DEEP DARK */}
+        <div className="flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/10 mb-6">
           <button
             type="button"
             onClick={() => setActiveTab('login')}
-            className={`flex-1 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
-              activeTab === 'login' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+              activeTab === 'login' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white'
             }`}
           >
             Iniciar Sesión
@@ -179,8 +176,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
           <button
             type="button"
             onClick={() => setActiveTab('register')}
-            className={`flex-1 py-2 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
-              activeTab === 'register' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+              activeTab === 'register' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white'
             }`}
           >
             Registrarse
@@ -188,7 +185,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
         </div>
 
         {errorMsg && (
-          <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold p-3 rounded-xl">
+          <div className="mb-4 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold p-3.5 rounded-xl">
             ⚠️ {errorMsg}
           </div>
         )}
@@ -196,7 +193,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {activeTab === 'register' && (
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre Completo</label>
+              <label className="block text-xs font-mono-code font-bold text-slate-300 uppercase mb-1.5">Nombre Completo</label>
               <input
                 type="text"
                 name="nombre"
@@ -204,13 +201,13 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
                 placeholder="Ej. Juan Pérez"
                 value={formData.nombre}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-slate-900/90 text-white placeholder-slate-500 text-sm focus:border-indigo-500 outline-none transition-all"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Correo Electrónico</label>
+            <label className="block text-xs font-mono-code font-bold text-slate-300 uppercase mb-1.5">Correo Electrónico</label>
             <input
               type="email"
               name="correo"
@@ -218,12 +215,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
               placeholder="tu.correo@universidad.edu.ec"
               value={formData.correo}
               onChange={handleChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-slate-900/90 text-white placeholder-slate-500 text-sm focus:border-indigo-500 outline-none transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Contraseña</label>
+            <label className="block text-xs font-mono-code font-bold text-slate-300 uppercase mb-1.5">Contraseña</label>
             <input
               type="password"
               name="password"
@@ -231,43 +228,43 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-slate-900/90 text-white placeholder-slate-500 text-sm focus:border-indigo-500 outline-none transition-all"
             />
           </div>
 
           {activeTab === 'register' && (
             <>
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Semestre Actual</label>
+                <label className="block text-xs font-mono-code font-bold text-slate-300 uppercase mb-1.5">Semestre Actual</label>
                 <select
                   name="semestre"
                   value={formData.semestre}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white text-sm focus:border-indigo-500 outline-none transition-all cursor-pointer"
                 >
-                  <option value="1er Semestre">1er Semestre</option>
-                  <option value="2do Semestre">2do Semestre</option>
-                  <option value="3er Semestre">3er Semestre</option>
-                  <option value="4to Semestre">4to Semestre</option>
-                  <option value="5to Semestre">5to Semestre</option>
-                  <option value="6to Semestre">6to Semestre</option>
-                  <option value="7mo Semestre">7mo Semestre</option>
-                  <option value="8vo Semestre">8vo Semestre</option>
-                  <option value="Egresado / Graduado">Egresado / Graduado</option>
+                  <option value="1er Semestre" className="bg-slate-900 text-white">1er Semestre</option>
+                  <option value="2do Semestre" className="bg-slate-900 text-white">2do Semestre</option>
+                  <option value="3er Semestre" className="bg-slate-900 text-white">3er Semestre</option>
+                  <option value="4to Semestre" className="bg-slate-900 text-white">4to Semestre</option>
+                  <option value="5to Semestre" className="bg-slate-900 text-white">5to Semestre</option>
+                  <option value="6to Semestre" className="bg-slate-900 text-white">6to Semestre</option>
+                  <option value="7mo Semestre" className="bg-slate-900 text-white">7mo Semestre</option>
+                  <option value="8vo Semestre" className="bg-slate-900 text-white">8vo Semestre</option>
+                  <option value="Egresado / Graduado" className="bg-slate-900 text-white">Egresado / Graduado</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Áreas de Interés (Máx 3)</label>
+                <label className="block text-xs font-mono-code font-bold text-slate-300 uppercase mb-1.5">Áreas de Interés (Máx 3)</label>
                 <select
                   onChange={handleAddArea}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none mb-2"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white text-sm focus:border-indigo-500 outline-none transition-all cursor-pointer mb-2"
                 >
-                  <option value="">-- Seleccionar área --</option>
+                  <option value="" className="bg-slate-900 text-slate-400">-- Seleccionar área --</option>
                   {categoriasAreas.map((cat, idx) => (
-                    <optgroup key={idx} label={cat.categoria}>
+                    <optgroup key={idx} label={cat.categoria} className="bg-slate-900 text-indigo-300 font-bold">
                       {cat.opciones.map((op, i) => (
-                        <option key={i} value={op}>{op}</option>
+                        <option key={i} value={op} className="bg-slate-900 text-white">{op}</option>
                       ))}
                     </optgroup>
                   ))}
@@ -275,12 +272,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
 
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {formData.areas.map((area, idx) => (
-                    <span key={idx} className="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
+                    <span key={idx} className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-xs px-3 py-1 rounded-lg font-bold flex items-center gap-1.5">
                       {area}
                       <button
                         type="button"
                         onClick={() => handleRemoveArea(area)}
-                        className="text-indigo-600 hover:text-indigo-900 font-bold ml-1 cursor-pointer"
+                        className="text-indigo-400 hover:text-white font-black ml-1 cursor-pointer"
                       >
                         ×
                       </button>
@@ -294,7 +291,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 rounded-2xl shadow-lg shadow-indigo-100 transition-all text-sm cursor-pointer disabled:opacity-50 mt-4"
+            className="w-full btn-accent-gradient font-black py-3.5 rounded-2xl transition-all text-sm cursor-pointer disabled:opacity-50 mt-4"
           >
             {loading ? 'Procesando...' : (activeTab === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta')}
           </button>

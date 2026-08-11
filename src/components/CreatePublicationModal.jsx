@@ -198,27 +198,29 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+      <div className="bento-card-glow bg-[#0C0F19]/95 text-white border border-white/10 rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto">
         
         {/* BOTÓN CERRAR */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+          className="absolute top-5 right-5 text-slate-400 hover:text-white w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors border border-white/5 cursor-pointer"
         >
           ✕
         </button>
 
         {/* ENCABEZADO */}
         <div className="text-center space-y-2 mb-6">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-3.5 py-1 rounded-full text-indigo-700 text-xs font-bold">
-            <span>✨ Nueva Publicación en UniLinkd</span>
+          <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 rounded-full text-indigo-300 text-xs font-mono-code font-bold">
+            <span>✨ NUEVA PUBLICACIÓN EN UNILINKD</span>
           </div>
-          <h3 className="text-2xl font-extrabold text-[#0F172A]">
+          <h3 className="text-2xl sm:text-3xl font-black text-white font-heading">
             ¿Qué deseas publicar hoy?
           </h3>
-          <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
-            Crea una convocatoria para buscar colaboradores o postula tus servicios e itinerarios académicos.
+          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+            {user?.rol === 'admin' 
+              ? 'Tus publicaciones como Administrador se aprobarán automáticamente.' 
+              : 'Tu solicitud será revisada por el Administrador antes de publicarse.'}
           </p>
         </div>
 
