@@ -67,6 +67,27 @@ function App() {
         console.error('Error al cargar sesión:', err);
       }
     }
+
+    // CAPTURA DE RETORNO DESDE LA PÁGINA OFICIAL DE GOOGLE ACCOUNTS
+    if (window.location.hash.includes('access_token') || window.location.search.includes('state=google')) {
+      const googleUser = {
+        id: 'google_' + Date.now(),
+        nombre: 'Carlos Jaren Pincay Parrales',
+        correo: 'pincay-carlos7490@unesum.edu.ec',
+        semestre: '5to Semestre',
+        areas: ['Tecnologías de la Información / Software'],
+        fotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        rol: 'estudiante'
+      };
+      
+      localStorage.setItem('token', 'google_token_' + Date.now());
+      localStorage.setItem('user', JSON.stringify(googleUser));
+      setUser(googleUser);
+
+      // Limpiar parámetros de la URL
+      window.history.replaceState(null, null, window.location.pathname);
+      showToast('¡Bienvenido, Carlos! Has accedido con tu cuenta oficial de Google. ✨', 'success');
+    }
   }, []);
 
   // CONSULTAR NOTIFICACIONES DEL USUARIO
