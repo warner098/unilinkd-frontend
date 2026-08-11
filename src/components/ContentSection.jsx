@@ -152,20 +152,20 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
   });
 
   return (
-    <section id="seccion-explorar" className="py-20 px-4 sm:px-6 bg-slate-50 relative">
+    <section id="seccion-explorar" className="py-24 px-4 sm:px-6 bg-[#07090E] border-b border-white/5 relative">
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         
-        {/* ENCABEZADO Y PESTAÑAS PRINCIPALES */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-slate-200/80 pb-6">
+        {/* ENCABEZADO Y PESTAÑAS BENTO */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-white/10 pb-6">
           <div className="space-y-3 text-left">
-            <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200/60 px-3.5 py-1.5 rounded-full text-indigo-700 text-xs font-extrabold shadow-xs">
-              <span>🔥 Explora Oportunidades Académicas</span>
+            <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1.5 rounded-full text-indigo-300 text-xs font-mono-code font-bold">
+              <span>🔥 EXPLORA PUBLICACIONES EN VIVO</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight font-heading">
-              Conecta, colabora y adquiere experiencia real
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight font-heading">
+              Descubre proyectos e iniciativas activas
             </h2>
-            <p className="text-slate-600 text-sm sm:text-base font-normal">
-              Encuentra proyectos activos donde aportar tus conocimientos o contacta estudiantes disponibles.
+            <p className="text-slate-400 text-sm sm:text-base font-normal">
+              Encuentra oportunidades para aportar tus habilidades o contacta a compañeros tutores.
             </p>
           </div>
 
@@ -173,19 +173,19 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
             {onOpenPublicationModal && (
               <button
                 onClick={onOpenPublicationModal}
-                className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-extrabold px-5 py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-indigo-500/20 flex items-center gap-1.5 cursor-pointer hover:scale-105"
+                className="btn-accent-gradient font-black px-5 py-3 rounded-2xl text-xs sm:text-sm cursor-pointer"
               >
                 <span>+</span> Publicar Servicio o Proyecto
               </button>
             )}
 
-            <div className="inline-flex bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/60">
+            <div className="inline-flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/10">
               <button
                 onClick={() => setActiveTab('proyectos')}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer ${
                   activeTab === 'proyectos'
-                    ? 'bg-white text-indigo-600 shadow-md shadow-slate-300/50'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <span>🚀</span> Proyectos Estudiantiles
@@ -195,8 +195,8 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                 onClick={() => setActiveTab('estudiantes')}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer ${
                   activeTab === 'estudiantes'
-                    ? 'bg-white text-indigo-600 shadow-md shadow-slate-300/50'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <span>👤</span> Estudiantes / Ayudantes
@@ -205,11 +205,11 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
           </div>
         </div>
 
-        {/* BARRA DE FILTROS POR CATEGORÍA Y BUSCADOR */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white/80 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+        {/* BARRA DE FILTROS EN BENTO GRID */}
+        <div className="bento-card p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           {activeTab === 'proyectos' ? (
             <div className="flex flex-wrap gap-2 items-center text-left">
-              <span className="text-xs font-extrabold text-slate-400 mr-1 uppercase tracking-wider">
+              <span className="text-xs font-mono-code font-bold text-slate-400 mr-1 uppercase tracking-wider">
                 Categorías:
               </span>
               {categorias.map((cat) => (
@@ -219,7 +219,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === cat
                       ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-slate-100/80 text-slate-600 hover:bg-indigo-50 border border-slate-200/60'
+                      : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 border border-white/5'
                   }`}
                 >
                   {cat}
@@ -227,7 +227,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
               ))}
             </div>
           ) : (
-            <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-mono-code font-bold text-slate-400 uppercase tracking-wider">
               Estudiantes & Tutores Universitarios Verificados
             </span>
           )}
@@ -238,7 +238,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
               placeholder="🔍 Buscar por nombre, título o etiqueta..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-2xl border border-white/10 text-xs bg-slate-900 text-white placeholder-slate-500 focus:border-indigo-500 outline-none transition-all"
             />
           </div>
         </div>
@@ -252,29 +252,29 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
               {filteredProjects.map((p) => (
                 <div 
                   key={p._id || p.id} 
-                  className="glass-card rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group border border-slate-200/80 hover:border-indigo-300"
+                  className="bento-card p-6 flex flex-col justify-between space-y-4 hover:scale-[1.01]"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
                         {p.categoriaPrincipal || 'General'}
                       </span>
-                      <span className="text-[11px] text-amber-800 font-extrabold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                      <span className="text-[11px] text-amber-300 font-extrabold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
                         {p.colaboradoresBuscados || 'Colaboradores'}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors font-heading">
+                    <h3 className="text-lg font-extrabold text-white font-heading">
                       {p.titulo}
                     </h3>
 
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100">
+                    <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/50 p-3.5 rounded-xl border border-white/5">
                       {p.descripcion}
                     </p>
 
                     {p.mediaUrl && p.mediaUrl.startsWith('data:image') && (
-                      <div className="mt-2">
-                        <img src={p.mediaUrl} alt={p.titulo} className="w-full h-40 object-cover rounded-2xl border border-slate-200 shadow-sm" />
+                      <div>
+                        <img src={p.mediaUrl} alt={p.titulo} className="w-full h-40 object-cover rounded-xl border border-white/10" />
                       </div>
                     )}
 
@@ -283,16 +283,16 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         href={p.repoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50/60 border border-indigo-100 px-3 py-1.5 rounded-xl"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl"
                       >
                         <span>💻 Repositorio GitHub/GitLab</span> →
                       </a>
                     )}
 
                     {p.etiquetas && p.etiquetas.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {p.etiquetas.map((rol, i) => (
-                          <span key={i} className="bg-indigo-50 text-indigo-700 text-xs px-2.5 py-1 rounded-lg font-bold border border-indigo-100">
+                          <span key={i} className="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs px-2.5 py-1 rounded-lg font-bold">
                             +{rol}
                           </span>
                         ))}
@@ -300,21 +300,21 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                     )}
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-500 font-bold">Por: {p.autor || 'Estudiante'}</span>
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-400 font-bold">Por: {p.autor || 'Estudiante'}</span>
                     
                     <div className="flex items-center gap-2">
                       {canDelete(p) && (
                         <button
                           onClick={() => handleDeleteProject(p._id || p.id)}
                           title={user?.rol === 'admin' ? "Eliminar como Admin" : "Eliminar mi proyecto"}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer"
+                          className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2 rounded-xl cursor-pointer"
                         >
                           <span>🗑️</span>
                         </button>
                       )}
 
-                      <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-md cursor-pointer hover:scale-105">
+                      <button className="btn-accent-gradient font-black text-xs px-4 py-2 rounded-xl cursor-pointer">
                         Unirme →
                       </button>
                     </div>
@@ -323,14 +323,14 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
               ))}
             </div>
           ) : (
-            <div className="glass-card rounded-3xl p-12 text-center max-w-md mx-auto space-y-4 shadow-sm border border-slate-200">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+            <div className="bento-card p-12 text-center max-w-md mx-auto space-y-4">
+              <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto text-3xl">
                 🚀
               </div>
-              <h3 className="text-lg font-extrabold text-slate-800 font-heading">
+              <h3 className="text-lg font-extrabold text-white font-heading">
                 {searchQuery ? 'No se encontraron proyectos' : 'Aún no hay proyectos publicados'}
               </h3>
-              <p className="text-slate-500 text-xs leading-relaxed">
+              <p className="text-slate-400 text-xs leading-relaxed">
                 {searchQuery 
                   ? `No se encontraron coincidencias para "${searchQuery}".`
                   : 'No hay convocatorias activas en esta categoría. ¡Publica tu proyecto para empezar!'}
@@ -348,7 +348,7 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
               {filteredServices.map((student) => (
                 <div 
                   key={student._id || student.id} 
-                  className="glass-card rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group border border-slate-200/80 hover:border-indigo-300"
+                  className="bento-card p-6 flex flex-col justify-between space-y-4 hover:scale-[1.01]"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center gap-3.5">
@@ -356,34 +356,34 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         <img 
                           src={student.fotoUrl} 
                           alt={student.nombreEstudiante} 
-                          className="w-14 h-14 rounded-2xl object-cover ring-2 ring-indigo-500/20 shadow-md"
+                          className="w-12 h-12 rounded-xl object-cover ring-2 ring-indigo-500/30"
                         />
                       ) : (
-                        <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-md">
+                        <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center text-xl font-black shadow-inner">
                           {(student.nombreEstudiante || 'E').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <h3 className="text-base font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors font-heading">
+                        <h3 className="text-base font-extrabold text-white font-heading">
                           {student.nombreEstudiante}
                         </h3>
-                        <p className="text-xs text-indigo-600 font-bold mt-0.5">
+                        <p className="text-xs text-indigo-400 font-bold mt-0.5">
                           {student.areaEspecialidad}
                         </p>
-                        <p className="text-[11px] text-slate-400 font-semibold">
+                        <p className="text-[11px] text-slate-400 font-mono-code font-semibold">
                           {student.semestre}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100">
+                    <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/50 p-3.5 rounded-xl border border-white/5">
                       {student.descripcion}
                     </p>
 
                     {student.etiquetas && student.etiquetas.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {student.etiquetas.map((cat, i) => (
-                          <span key={i} className="bg-indigo-50 text-indigo-700 text-xs px-2.5 py-1 rounded-lg font-bold border border-indigo-100">
+                          <span key={i} className="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs px-2.5 py-1 rounded-lg font-bold">
                             {cat}
                           </span>
                         ))}
@@ -391,9 +391,9 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                     )}
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-xs text-emerald-700 font-extrabold flex items-center gap-1.5 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Disponible
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+                    <span className="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Disponible
                     </span>
                     
                     <div className="flex items-center gap-2">
@@ -401,13 +401,13 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         <button
                           onClick={() => handleDeleteService(student._id || student.id)}
                           title={user?.rol === 'admin' ? "Eliminar como Admin" : "Eliminar mi servicio"}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer"
+                          className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2 rounded-xl cursor-pointer"
                         >
                           <span>🗑️</span>
                         </button>
                       )}
 
-                      <button className="bg-slate-900 hover:bg-indigo-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs transition-all shadow-md cursor-pointer hover:scale-105">
+                      <button className="btn-accent-gradient font-black px-4 py-2 rounded-xl text-xs cursor-pointer">
                         Contactar
                       </button>
                     </div>
@@ -416,14 +416,14 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
               ))}
             </div>
           ) : (
-            <div className="glass-card rounded-3xl p-12 text-center max-w-md mx-auto space-y-4 shadow-sm border border-slate-200">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+            <div className="bento-card p-12 text-center max-w-md mx-auto space-y-4">
+              <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto text-3xl">
                 🤝
               </div>
-              <h3 className="text-lg font-extrabold text-slate-800 font-heading">
+              <h3 className="text-lg font-extrabold text-white font-heading">
                 {searchQuery ? 'No se encontraron estudiantes' : 'Aún no hay estudiantes ofreciendo servicios'}
               </h3>
-              <p className="text-slate-500 text-xs leading-relaxed">
+              <p className="text-slate-400 text-xs leading-relaxed">
                 {searchQuery 
                   ? `No hay estudiantes o tutores que coincidan con "${searchQuery}".`
                   : 'Ofrece tus tutorías o habilidades para figurar en este apartado.'}

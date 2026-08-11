@@ -199,7 +199,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans relative">
+    <div className="min-h-screen bg-[#07090E] text-slate-100 font-sans relative selection:bg-indigo-500/30 selection:text-indigo-200">
       <Navbar 
         user={user} 
         onOpenAuth={handleOpenAuth} 
