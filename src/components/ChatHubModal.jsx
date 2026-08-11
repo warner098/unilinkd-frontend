@@ -4,8 +4,10 @@ import { API_BASE_URL } from '../config/api';
 export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, showToast }) {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [selectedRequestId, setSelectedRequestId] = useState(initialRequestId);
   const [loading, setLoading] = useState(true);
+
+  // Ref que mantiene el ID del chat seleccionado inmune a re-renders y closures de setInterval
+  const activeSelectedIdRef = useRef(initialRequestId || null);
 
   // Estado del mensaje de chat
   const [newMessageText, setNewMessageText] = useState('');
@@ -20,7 +22,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
   useEffect(() => {
     if (initialRequestId) {
-      setSelectedRequestId(initialRequestId);
+      activeSelectedIdRef.current = initialRequestId;
     }
   }, [initialRequestId]);
 
@@ -44,22 +46,26 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
         setRequests(activeData);
 
-        // Seleccionar respetando la elección manual del usuario
-        if (selectedRequestId) {
-          const found = activeData.find(r => (r._id || r.id) === selectedRequestId);
+        const currentSelectedId = activeSelectedIdRef.current;
+
+        if (currentSelectedId) {
+          const found = activeData.find(r => (r._id || r.id) === currentSelectedId);
           if (found) {
             setSelectedRequest(found);
           } else if (activeData.length > 0) {
+            const firstId = activeData[0]._id || activeData[0].id;
+            activeSelectedIdRef.current = firstId;
             setSelectedRequest(activeData[0]);
-            setSelectedRequestId(activeData[0]._id || activeData[0].id);
           } else {
+            activeSelectedIdRef.current = null;
             setSelectedRequest(null);
-            setSelectedRequestId(null);
           }
         } else if (activeData.length > 0) {
+          const firstId = activeData[0]._id || activeData[0].id;
+          activeSelectedIdRef.current = firstId;
           setSelectedRequest(activeData[0]);
-          setSelectedRequestId(activeData[0]._id || activeData[0].id);
         } else {
+          activeSelectedIdRef.current = null;
           setSelectedRequest(null);
         }
       }
@@ -72,15 +78,19 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
   useEffect(() => {
     if (isOpen && user) {
+      if (initialRequestId) {
+        activeSelectedIdRef.current = initialRequestId;
+      }
       fetchRequests();
-      // Polling continuo cada 3s para chat en vivo sin recargar
+
+      // Polling continuo cada 3s para chat en vivo sin resetear la selección del usuario
       const interval = setInterval(fetchRequests, 3000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, initialRequestId]);
 
   useEffect(() => {
-    // Scroll al final del chat cuando llegan mensajes
+    // Scroll al final del chat cuando llegan nuevos mensajes
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [selectedRequest?.mensajes]);
 
@@ -88,9 +98,10 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
   const currentUserId = user?.id || user?._id;
 
+  // Cambiar manualmente de chat en la lista lateral
   const handleSelectRequest = (req) => {
     const targetId = req._id || req.id;
-    setSelectedRequestId(targetId);
+    activeSelectedIdRef.current = targetId;
     setSelectedRequest(req);
     setShowRejectInput(false);
   };
@@ -126,16 +137,18 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       setShowRejectInput(false);
 
       if (nuevoEstado === 'rechazado') {
-        // Remover de la lista activa e ir a la siguiente inmediatamente
+        // Remover de la lista e ir a la siguiente petición
         const remaining = requests.filter(r => (r._id || r.id) !== currentId);
         setRequests(remaining);
+
         if (remaining.length > 0) {
           const nextReq = remaining[0];
+          const nextId = nextReq._id || nextReq.id;
+          activeSelectedIdRef.current = nextId;
           setSelectedRequest(nextReq);
-          setSelectedRequestId(nextReq._id || nextReq.id);
         } else {
+          activeSelectedIdRef.current = null;
           setSelectedRequest(null);
-          setSelectedRequestId(null);
         }
       } else {
         fetchRequests();
