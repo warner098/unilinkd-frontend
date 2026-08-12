@@ -44,12 +44,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
           return true;
         });
 
-        // Si se especificó un filtro de servicio particular desde la tarjeta del servicio
+        // Si se especificó un filtro de servicio particular
         if (filterServiceId) {
           const serviceSpecific = activeData.filter(r => 
             r.autorServicioId === userId && (r.servicioId === filterServiceId || r.servicioId?.toString() === filterServiceId.toString())
           );
-          // Si existen peticiones para ese servicio, priorizarlas
           if (serviceSpecific.length > 0 && !activeSelectedIdRef.current) {
             activeSelectedIdRef.current = serviceSpecific[0]._id || serviceSpecific[0].id;
           }
@@ -108,6 +107,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   if (!isOpen) return null;
 
   const currentUserId = user?.id || user?._id;
+  const userPhoto = user?.fotoUrl || user?.foto || user?.avatar || '';
 
   // Cambiar manualmente de chat en la lista lateral
   const handleSelectRequest = (req) => {
@@ -183,7 +183,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         body: JSON.stringify({
           emisorId: currentUserId,
           emisorNombre: user?.nombre || 'Estudiante',
-          emisorFoto: user?.fotoUrl || '',
+          emisorFoto: userPhoto,
           mensaje: newMessageText,
           mediaUrl: messageMediaUrl
         })
@@ -291,7 +291,6 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         </div>
 
                         <div className="flex-1 overflow-hidden">
-                          {/* ETIQUETA CLARA DEL SERVICIO AL QUE CORRESPONDE */}
                           <span className="text-[9px] font-extrabold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-md block truncate mb-1 border border-indigo-500/30">
                             📌 Servicio: {req.servicioTitulo}
                           </span>
@@ -494,24 +493,33 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
                 </div>
 
-                {/* HISTORIAL DE CHAT EN TIEMPO REAL (DISCORD STREAM) */}
+                {/* HISTORIAL DE CHAT EN TIEMPO REAL (DISCORD STREAM SIN SEPARADOR INNECESARIO) */}
                 {selectedRequest.estado === 'aceptado' && (
                   <div className="space-y-4 pt-2">
-                    <div className="flex items-center gap-2 text-slate-500 text-xs font-mono-code my-4">
-                      <div className="flex-1 border-t border-white/10"></div>
-                      <span>INICIO DEL CHAT EN VIVO DE LA PETICIÓN</span>
-                      <div className="flex-1 border-t border-white/10"></div>
-                    </div>
-
                     {selectedRequest.mensajes && selectedRequest.mensajes.length > 0 ? (
                       selectedRequest.mensajes.map((msg, index) => {
                         const isMe = msg.emisorId === currentUserId;
+                        
+                        // Lógica de fallback para avatar: si msg.emisorFoto es vacía, usar solicitanteFoto o autorServicioFoto
+                        const emisorAvatar = msg.emisorFoto || (
+                          msg.emisorId === selectedRequest.solicitanteId 
+                            ? selectedRequest.solicitanteFoto 
+                            : selectedRequest.autorServicioFoto
+                        );
 
                         return (
                           <div key={index} className={`flex items-start gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-                            <div className="w-8 h-8 rounded-xl bg-slate-800 text-white font-bold text-xs flex items-center justify-center shrink-0 border border-white/10">
-                              {(msg.emisorNombre || 'E').charAt(0).toUpperCase()}
-                            </div>
+                            {emisorAvatar ? (
+                              <img 
+                                src={emisorAvatar} 
+                                alt={msg.emisorNombre} 
+                                className="w-8 h-8 rounded-xl object-cover shrink-0 border border-white/10 ring-1 ring-indigo-500/30" 
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-xl bg-slate-800 text-indigo-300 font-bold text-xs flex items-center justify-center shrink-0 border border-white/10">
+                                {(msg.emisorNombre || 'E').charAt(0).toUpperCase()}
+                              </div>
+                            )}
 
                             <div className={`max-w-md space-y-1 ${isMe ? 'text-right' : 'text-left'}`}>
                               <div className="flex items-center gap-2 px-1">
@@ -540,7 +548,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                       })
                     ) : (
                       <p className="text-xs text-slate-500 italic text-center py-6">
-                        ¡El chat ha sido habilitado! Envía un mensaje para comenzar a hablar sobre el trabajo.
+                        ¡El chat ha sido habilitado! Envía un mensaje para comenzar a coordinar el trabajo.
                       </p>
                     )}
 
