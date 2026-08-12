@@ -10,7 +10,8 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate, on
     setLoading(true);
     try {
       const userId = user.id || user._id;
-      const res = await fetch(`${API_BASE_URL}/api/notifications/${userId}`);
+      const userName = user.nombre || '';
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${userId}?autorNombre=${encodeURIComponent(userName)}`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data);
