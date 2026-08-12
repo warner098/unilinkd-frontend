@@ -26,28 +26,52 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   }, [initialRequestId]);
 
+  const currentUserId = user?.id || user?._id;
+  const currentUserName = (user?.nombre || user?.nombreEstudiante || '').trim().toLowerCase();
+  const userPhoto = user?.fotoUrl || user?.foto || user?.avatar || '';
+
+  const isTutorOfReq = (r) => {
+    if (!r) return false;
+    const reqAutorId = r.autorServicioId ? r.autorServicioId.toString() : '';
+    const reqAutorNombre = (r.autorServicioNombre || '').trim().toLowerCase();
+    
+    if (currentUserId && reqAutorId && reqAutorId === currentUserId.toString()) return true;
+    if (currentUserName && reqAutorNombre && reqAutorNombre === currentUserName) return true;
+    return false;
+  };
+
+  const isSolicitantOfReq = (r) => {
+    if (!r) return false;
+    const reqSolId = r.solicitanteId ? r.solicitanteId.toString() : '';
+    const reqSolNombre = (r.solicitanteNombre || '').trim().toLowerCase();
+
+    if (currentUserId && reqSolId && reqSolId === currentUserId.toString()) return true;
+    if (currentUserName && reqSolNombre && reqSolNombre === currentUserName) return true;
+    return false;
+  };
+
   // Cargar peticiones del usuario
   const fetchRequests = async () => {
     if (!user) return;
     const userId = user.id || user._id;
+    const userName = user.nombre || '';
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/requests/user/${userId}`);
+      const res = await fetch(`${API_BASE_URL}/api/requests/user/${userId}?userNombre=${encodeURIComponent(userName)}`);
       if (res.ok) {
         const data = await res.json();
         
-        // Para el tutor, filtrar peticiones rechazadas
         let activeData = data.filter(r => {
-          if (r.autorServicioId === userId && r.estado === 'rechazado') {
+          if (isTutorOfReq(r) && r.estado === 'rechazado') {
             return false;
           }
           return true;
         });
 
-        // Si se especificó un filtro de servicio particular
+        // Si se especificó un filtro de servicio particular desde la tarjeta
         if (filterServiceId) {
           const serviceSpecific = activeData.filter(r => 
-            r.autorServicioId === userId && (r.servicioId === filterServiceId || r.servicioId?.toString() === filterServiceId.toString())
+            isTutorOfReq(r) && (r.servicioId === filterServiceId || r.servicioId?.toString() === filterServiceId.toString())
           );
           if (serviceSpecific.length > 0 && !activeSelectedIdRef.current) {
             activeSelectedIdRef.current = serviceSpecific[0]._id || serviceSpecific[0].id;
@@ -106,15 +130,44 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
   if (!isOpen) return null;
 
-  const currentUserId = user?.id || user?._id;
-  const userPhoto = user?.fotoUrl || user?.foto || user?.avatar || '';
-
   // Cambiar manualmente de chat en la lista lateral
   const handleSelectRequest = (req) => {
     const targetId = req._id || req.id;
     activeSelectedIdRef.current = targetId;
     setSelectedRequest(req);
     setShowRejectInput(false);
+  };
+
+  // Eliminar chat sólo para el usuario actual
+  const handleDeleteChat = async (requestId) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este chat de tu historial? La otra persona mantendrá la conversación.')) return;
+    const reqId = requestId || (selectedRequest ? (selectedRequest._id || selectedRequest.id) : null);
+    if (!reqId) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/requests/${reqId}?userId=${currentUserId}&userNombre=${encodeURIComponent(user?.nombre || '')}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        if (showToast) showToast('Chat eliminado de tu historial.', 'info');
+        
+        const remaining = requests.filter(r => (r._id || r.id) !== reqId);
+        setRequests(remaining);
+
+        if (remaining.length > 0) {
+          const nextReq = remaining[0];
+          const nextId = nextReq._id || nextReq.id;
+          activeSelectedIdRef.current = nextId;
+          setSelectedRequest(nextReq);
+        } else {
+          activeSelectedIdRef.current = null;
+          setSelectedRequest(null);
+        }
+      }
+    } catch (err) {
+      console.error('Error al eliminar chat:', err);
+    }
   };
 
   // Cambiar estado a ACEPTADO o RECHAZADO
@@ -129,7 +182,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         body: JSON.stringify({
           estado: nuevoEstado,
           motivoRechazo: motivo,
-          userId: currentUserId
+          userId: currentUserId,
+          userNombre: user?.nombre
         })
       });
 
@@ -217,8 +271,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   };
 
   // Peticiones agrupadas por rol
-  const peticionesComoTutor = requests.filter(r => r.autorServicioId === currentUserId && r.estado !== 'rechazado');
-  const peticionesComoSolicitante = requests.filter(r => r.solicitanteId === currentUserId);
+  const peticionesComoTutor = requests.filter(r => isTutorOfReq(r) && r.estado !== 'rechazado');
+  const peticionesComoSolicitante = requests.filter(r => isSolicitantOfReq(r));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-lg animate-fade-in text-left">
@@ -303,11 +357,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   })}
                 </div>
               ) : (
-                <p className="text-[11px] text-slate-500 italic px-2">No tienes peticiones para este servicio.</p>
+                <p className="text-[11px] text-slate-500 italic px-2">No tienes peticiones activas como tutor.</p>
               )}
             </div>
 
-            {/* GRUPO 2: MIS SOLICITUDES ENVIADAS (COMO SOLICITANTE DE OTRO TUTOR) */}
+            {/* GRUPO 2: MIS SOLICITUDES ENVIADAS (COMO SOLICITANTE) */}
             <div className="space-y-2">
               <span className="text-[10px] font-mono-code font-bold text-slate-400 uppercase tracking-widest px-2">
                 📤 Mis Solicitudes Enviadas ({peticionesComoSolicitante.length})
@@ -386,6 +440,15 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                     Servicio: <span className="text-indigo-400 font-bold">{selectedRequest.servicioTitulo}</span> | Solicitante: <span className="text-white font-bold">{selectedRequest.solicitanteNombre}</span>
                   </p>
                 </div>
+
+                {/* BOTÓN INDEPENDIENTE PARA ELIMINAR EL CHAT */}
+                <button
+                  onClick={() => handleDeleteChat(selectedRequest._id || selectedRequest.id)}
+                  title="Eliminar este chat de mi historial"
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shrink-0"
+                >
+                  <span>🗑️</span> Eliminar Chat
+                </button>
               </div>
 
               {/* CONTENIDO DEL PANEL */}
@@ -432,7 +495,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   )}
 
                   {/* SI LA PETICIÓN ESTÁ PENDIENTE Y EL USUARIO ES EL TUTOR DEL SERVICIO */}
-                  {selectedRequest.estado === 'pendiente' && selectedRequest.autorServicioId === currentUserId && (
+                  {selectedRequest.estado === 'pendiente' && isTutorOfReq(selectedRequest) && (
                     <div className="pt-4 border-t border-white/10 space-y-3">
                       <p className="text-xs font-bold text-amber-300">
                         👉 Revisa la propuesta y decide si deseas aceptar la petición para iniciar el chat en tiempo real:
@@ -484,7 +547,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   )}
 
                   {/* SI LA PETICIÓN FUE RECHAZADA */}
-                  {selectedRequest.estado === 'rechazado' && selectedRequest.solicitanteId === currentUserId && (
+                  {selectedRequest.estado === 'rechazado' && isSolicitantOfReq(selectedRequest) && (
                     <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl text-xs text-rose-200">
                       <span className="font-extrabold text-rose-400 block">⚠️ Petición Rechazada por el tutor:</span>
                       "{selectedRequest.motivoRechazo || 'Información no adecuada'}"
@@ -493,14 +556,14 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
                 </div>
 
-                {/* HISTORIAL DE CHAT EN TIEMPO REAL (DISCORD STREAM SIN SEPARADOR INNECESARIO) */}
+                {/* HISTORIAL DE CHAT EN TIEMPO REAL */}
                 {selectedRequest.estado === 'aceptado' && (
                   <div className="space-y-4 pt-2">
                     {selectedRequest.mensajes && selectedRequest.mensajes.length > 0 ? (
                       selectedRequest.mensajes.map((msg, index) => {
-                        const isMe = msg.emisorId === currentUserId;
+                        const isMe = (msg.emisorId && currentUserId && msg.emisorId.toString() === currentUserId.toString()) ||
+                                     (msg.emisorNombre && currentUserName && msg.emisorNombre.trim().toLowerCase() === currentUserName);
                         
-                        // Lógica de fallback para avatar: si msg.emisorFoto es vacía, usar solicitanteFoto o autorServicioFoto
                         const emisorAvatar = msg.emisorFoto || (
                           msg.emisorId === selectedRequest.solicitanteId 
                             ? selectedRequest.solicitanteFoto 
