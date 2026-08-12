@@ -18,6 +18,10 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
 
+  // Estado de confirmación de borrado de chat personalizado
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [targetDeleteChatId, setTargetDeleteChatId] = useState(null);
+
   const chatBottomRef = useRef(null);
 
   useEffect(() => {
@@ -138,11 +142,19 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     setShowRejectInput(false);
   };
 
-  // Eliminar chat sólo para el usuario actual
-  const handleDeleteChat = async (requestId) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este chat de tu historial? La otra persona mantendrá la conversación.')) return;
+  // Abrir modal de confirmación de borrado
+  const promptDeleteChat = (requestId) => {
     const reqId = requestId || (selectedRequest ? (selectedRequest._id || selectedRequest.id) : null);
     if (!reqId) return;
+    setTargetDeleteChatId(reqId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  // Ejecutar eliminación sin window.confirm
+  const executeDeleteChat = async () => {
+    if (!targetDeleteChatId) return;
+    const reqId = targetDeleteChatId;
+    setShowDeleteConfirmModal(false);
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/requests/${reqId}?userId=${currentUserId}&userNombre=${encodeURIComponent(user?.nombre || '')}`, {
@@ -150,7 +162,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       });
 
       if (res.ok) {
-        if (showToast) showToast('Chat eliminado de tu historial.', 'info');
+        if (showToast) showToast('Chat eliminado de tu historial.', 'info', '🗑️');
         
         const remaining = requests.filter(r => (r._id || r.id) !== reqId);
         setRequests(remaining);
@@ -446,9 +458,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   </p>
                 </div>
 
-                {/* BOTÓN INDEPENDIENTE PARA ELIMINAR EL CHAT CON ESPACIADO LIMPIO */}
+                {/* BOTÓN INDEPENDIENTE PARA ELIMINAR EL CHAT */}
                 <button
-                  onClick={() => handleDeleteChat(selectedRequest._id || selectedRequest.id)}
+                  onClick={() => promptDeleteChat(selectedRequest._id || selectedRequest.id)}
                   title="Eliminar este chat de mi historial"
                   className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shrink-0"
                 >
@@ -675,6 +687,40 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         </div>
 
       </div>
+
+      {/* ======================================================== */}
+      {/* MODAL DE CONFIRMACIÓN DE BORRADO DE CHAT PERSONALIZADO BENTO */}
+      {/* ======================================================== */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in text-center">
+          <div className="bg-[#0C0F19] text-white border border-rose-500/30 rounded-3xl p-6 sm:p-8 max-w-sm w-full space-y-4 shadow-2xl relative border-t-4 border-t-rose-500">
+            <div className="w-14 h-14 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+              🗑️
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-lg font-black text-white font-heading">¿Eliminar chat de tu historial?</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Esta conversación se ocultará de tu panel personal. La otra persona mantendrá el acceso a su copia del chat.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={executeDeleteChat}
+                className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs py-3 rounded-xl cursor-pointer shadow-lg shadow-rose-600/30 transition-transform hover:scale-105"
+              >
+                Sí, eliminar
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirmModal(false)}
+                className="flex-1 btn-ghost-glow text-xs font-bold py-3 rounded-xl cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

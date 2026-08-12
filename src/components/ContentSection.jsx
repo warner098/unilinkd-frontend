@@ -85,7 +85,6 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
   };
 
   const handleDeleteProject = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer.')) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
@@ -99,9 +98,6 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
 
       if (res.ok) {
         setDbProjects((prev) => prev.filter((p) => (p._id || p.id) !== id));
-      } else {
-        const data = await res.json();
-        alert(data.msg || 'No se pudo eliminar el proyecto');
       }
     } catch (err) {
       console.error('Error al eliminar proyecto:', err);
@@ -109,7 +105,6 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
   };
 
   const handleDeleteService = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer.')) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/services/${id}`, {
         method: 'DELETE',
@@ -123,9 +118,6 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
 
       if (res.ok) {
         setDbServices((prev) => prev.filter((s) => (s._id || s.id) !== id));
-      } else {
-        const data = await res.json();
-        alert(data.msg || 'No se pudo eliminar el servicio');
       }
     } catch (err) {
       console.error('Error al eliminar servicio:', err);
