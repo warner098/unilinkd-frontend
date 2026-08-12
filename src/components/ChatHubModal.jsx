@@ -278,10 +278,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-lg animate-fade-in text-left">
       <div className="bento-card-glow bg-[#0B0E17]/95 text-white border border-white/10 rounded-3xl w-full max-w-5xl h-[88vh] shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
         
-        {/* BOTÓN CERRAR */}
+        {/* BOTÓN CERRAR MODAL */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 text-slate-400 hover:text-white w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
+          title="Cerrar ventana de chats"
+          className="absolute top-4 right-4 z-30 text-slate-400 hover:text-white w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer border border-white/5 bg-slate-900/80"
         >
           ✕
         </button>
@@ -333,7 +334,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                       >
                         <div className="relative">
                           {req.solicitanteFoto ? (
-                            <img src={req.solicitanteFoto} alt={req.solicitanteNombre} className="w-9 h-9 rounded-xl object-cover" />
+                            <img src={req.solicitanteFoto} alt={req.solicitanteNombre} className="w-9 h-9 rounded-xl object-cover border border-white/10" />
                           ) : (
                             <div className="w-9 h-9 bg-slate-800 text-indigo-300 font-black text-xs rounded-xl flex items-center justify-center border border-white/10">
                               {(req.solicitanteNombre || 'S').charAt(0).toUpperCase()}
@@ -361,7 +362,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
               )}
             </div>
 
-            {/* GRUPO 2: MIS SOLICITUDES ENVIADAS (COMO SOLICITANTE) */}
+            {/* GRUPO 2: MIS SOLICITUDES ENVIADAS (COMO SOLICITANTE DE OTRO TUTOR) */}
             <div className="space-y-2">
               <span className="text-[10px] font-mono-code font-bold text-slate-400 uppercase tracking-widest px-2">
                 📤 Mis Solicitudes Enviadas ({peticionesComoSolicitante.length})
@@ -385,9 +386,13 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         }`}
                       >
                         <div className="relative">
-                          <div className="w-9 h-9 bg-slate-800 text-indigo-300 font-black text-xs rounded-xl flex items-center justify-center border border-white/10">
-                            {(req.autorServicioNombre || 'T').charAt(0).toUpperCase()}
-                          </div>
+                          {req.autorServicioFoto ? (
+                            <img src={req.autorServicioFoto} alt={req.autorServicioNombre} className="w-9 h-9 rounded-xl object-cover border border-white/10" />
+                          ) : (
+                            <div className="w-9 h-9 bg-slate-800 text-indigo-300 font-black text-xs rounded-xl flex items-center justify-center border border-white/10">
+                              {(req.autorServicioNombre || 'T').charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 ${
                             isPending ? 'bg-amber-400 animate-pulse' : req.estado === 'aceptado' ? 'bg-emerald-400' : 'bg-rose-400'
                           }`}></span>
@@ -419,14 +424,14 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
           
           {selectedRequest ? (
             <>
-              {/* CABECERA SUPERIOR DEL CHAT */}
-              <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-900/40">
-                <div className="space-y-0.5">
+              {/* CABECERA SUPERIOR DEL CHAT CON PR-16 PARA EVITAR COLISIÓN CON EL BOTÓN X */}
+              <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-900/40 pr-16">
+                <div className="space-y-0.5 overflow-hidden">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-black text-white font-heading">
+                    <h3 className="text-base font-black text-white font-heading truncate">
                       {selectedRequest.tituloPeticion}
                     </h3>
-                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${
                       selectedRequest.estado === 'pendiente'
                         ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
                         : selectedRequest.estado === 'aceptado'
@@ -436,12 +441,12 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                       {selectedRequest.estado === 'pendiente' ? '⏳ Pendiente' : selectedRequest.estado === 'aceptado' ? '✅ Chat Activo' : '❌ Rechazado'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-400 truncate">
                     Servicio: <span className="text-indigo-400 font-bold">{selectedRequest.servicioTitulo}</span> | Solicitante: <span className="text-white font-bold">{selectedRequest.solicitanteNombre}</span>
                   </p>
                 </div>
 
-                {/* BOTÓN INDEPENDIENTE PARA ELIMINAR EL CHAT */}
+                {/* BOTÓN INDEPENDIENTE PARA ELIMINAR EL CHAT CON ESPACIADO LIMPIO */}
                 <button
                   onClick={() => handleDeleteChat(selectedRequest._id || selectedRequest.id)}
                   title="Eliminar este chat de mi historial"
