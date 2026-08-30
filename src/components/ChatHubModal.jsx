@@ -8,7 +8,10 @@ function ZoomableImageModal({ image, onClose }) {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const positionRef = useRef({ x: 0, y: 0 });
+  positionRef.current = position;
 
   if (!image || !image.src) return null;
 
@@ -37,22 +40,45 @@ function ZoomableImageModal({ image, onClose }) {
     }
   };
 
+  // INICIAR ARRASTRE ÚNICAMENTE AL MANTENER PRESIONADO EL BOTÓN IZQUIERDO DEL MOUSE
   const handleMouseDown = (e) => {
-    if (scale > 1) {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
-    }
+    if (e.button !== 0 || scale <= 1) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - positionRef.current.x,
+      y: e.clientY - positionRef.current.y
+    };
   };
 
-  const handleMouseMove = (e) => {
-    if (isDragging && scale > 1) {
-      setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
-    }
-  };
+  // LISTENERS EN EL WINDOW MIENTRAS ESTÉ MANTENIDO PRESIONADO EL CLICK
+  useEffect(() => {
+    if (!isDragging) return;
 
-  const handleMouseUp = () => setIsDragging(false);
+    const handleWindowMouseMove = (e) => {
+      e.preventDefault();
+      setPosition({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y
+      });
+    };
 
-  // Auto-centrar la imagen cuando se vuelve a la escala normal 1 (100%)
+    const handleWindowMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+    };
+  }, [isDragging]);
+
+  // AUTO-CENTRAR CUANDO LA ESCALA SEA 1 (100%)
   useEffect(() => {
     if (scale <= 1) {
       setPosition({ x: 0, y: 0 });
@@ -114,15 +140,14 @@ function ZoomableImageModal({ image, onClose }) {
         ✕
       </button>
 
-      {/* CONTENEDOR DE LA IMAGEN CON PAN Y WHEEL ZOOM */}
+      {/* CONTENEDOR DE LA IMAGEN CON ARRASTRE ESTRICTAMENTE CON CLICK MANTENIDO */}
       <div
-        className="relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
+        className={`relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden ${
+          scale > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'
+        }`}
         onClick={(e) => e.stopPropagation()}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
       >
         <img
           src={image.src}
@@ -131,7 +156,7 @@ function ZoomableImageModal({ image, onClose }) {
             transform: `translate(${scale === 1 ? 0 : position.x}px, ${scale === 1 ? 0 : position.y}px) scale(${scale})`,
             transition: isDragging ? 'none' : 'transform 0.2s ease-out'
           }}
-          className="max-w-[85vw] max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+          className="max-w-[85vw] max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-white/10 pointer-events-none"
         />
       </div>
     </div>
