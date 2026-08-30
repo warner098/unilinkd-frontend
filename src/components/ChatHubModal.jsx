@@ -9,11 +9,38 @@ function ZoomableImageModal({ image, onClose }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   
+  const containerRef = useRef(null);
+  const imgRef = useRef(null);
+
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef({ x: 0, y: 0 });
   positionRef.current = position;
 
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
+
   if (!image || !image.src) return null;
+
+  // LÍMITES DE ARRASTRE PARA QUE LA IMAGEN NUNCA SALGA DEL CUADRO
+  const getClampedPosition = (targetX, targetY, currentScale) => {
+    if (currentScale <= 1) return { x: 0, y: 0 };
+
+    if (imgRef.current) {
+      const imgWidth = imgRef.current.clientWidth || 300;
+      const imgHeight = imgRef.current.clientHeight || 300;
+
+      // Desplazamiento máximo permitido para no desbordar el cuadro
+      const maxDragX = Math.max(0, (imgWidth * (currentScale - 1)) / 2);
+      const maxDragY = Math.max(0, (imgHeight * (currentScale - 1)) / 2);
+
+      return {
+        x: Math.max(-maxDragX, Math.min(maxDragX, targetX)),
+        y: Math.max(-maxDragY, Math.min(maxDragY, targetY))
+      };
+    }
+
+    return { x: targetX, y: targetY };
+  };
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 4));
   const handleZoomOut = () => {
@@ -53,16 +80,17 @@ function ZoomableImageModal({ image, onClose }) {
     };
   };
 
-  // LISTENERS EN EL WINDOW MIENTRAS ESTÉ MANTENIDO PRESIONADO EL CLICK
+  // LISTENERS EN EL WINDOW CON CLAMPING EN TIEMPO REAL
   useEffect(() => {
     if (!isDragging) return;
 
     const handleWindowMouseMove = (e) => {
       e.preventDefault();
-      setPosition({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y
-      });
+      const rawX = e.clientX - dragStartRef.current.x;
+      const rawY = e.clientY - dragStartRef.current.y;
+
+      const clamped = getClampedPosition(rawX, rawY, scaleRef.current);
+      setPosition(clamped);
     };
 
     const handleWindowMouseUp = () => {
@@ -78,10 +106,12 @@ function ZoomableImageModal({ image, onClose }) {
     };
   }, [isDragging]);
 
-  // AUTO-CENTRAR CUANDO LA ESCALA SEA 1 (100%)
+  // RE-CALCULAR Y AUTO-CENTRAR CUANDO LA ESCALA CAMBIA
   useEffect(() => {
     if (scale <= 1) {
       setPosition({ x: 0, y: 0 });
+    } else {
+      setPosition(prev => getClampedPosition(prev.x, prev.y, scale));
     }
   }, [scale]);
 
@@ -140,9 +170,10 @@ function ZoomableImageModal({ image, onClose }) {
         ✕
       </button>
 
-      {/* CONTENEDOR DE LA IMAGEN CON ARRASTRE ESTRICTAMENTE CON CLICK MANTENIDO */}
+      {/* CONTENEDOR DE LA IMAGEN CON LÍMITES DE ARRASTRE STRICTOS */}
       <div
-        className={`relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden ${
+        ref={containerRef}
+        className={`relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden rounded-2xl ${
           scale > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -150,6 +181,7 @@ function ZoomableImageModal({ image, onClose }) {
         onMouseDown={handleMouseDown}
       >
         <img
+          ref={imgRef}
           src={image.src}
           alt={image.title || "Imagen ampliada"}
           style={{
