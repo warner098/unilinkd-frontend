@@ -1,6 +1,128 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config/api';
 
+// ========================================================
+// COMPONENTE LIGHTBOX DE IMAGEN CON ZOOM E INTERACCIÓN
+// ========================================================
+function ZoomableImageModal({ image, onClose }) {
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  if (!image || !image.src) return null;
+
+  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.3, 4));
+  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.3, 0.5));
+  const handleReset = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      handleZoomIn();
+    } else {
+      handleZoomOut();
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    if (scale > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging && scale > 1) {
+      setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    }
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl animate-fade-in select-none p-4"
+      onClick={onClose}
+    >
+      {/* TÍTULO Y CONTROLES SUPERIORES */}
+      <div 
+        className="absolute top-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-[#0C0F19]/90 border border-white/10 px-5 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="text-xs font-bold text-white max-w-[200px] truncate hidden sm:inline">
+          {image.title || 'Vista Previa'}
+        </span>
+        <div className="w-px h-4 bg-white/10 hidden sm:block"></div>
+
+        <button
+          onClick={handleZoomOut}
+          title="Alejar (Zoom -)"
+          className="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-all border border-white/10"
+        >
+          🔍 -
+        </button>
+        <span className="text-xs font-mono-code font-bold text-indigo-300 px-1 min-w-[45px] text-center">
+          {Math.round(scale * 100)}%
+        </span>
+        <button
+          onClick={handleZoomIn}
+          title="Acercar (Zoom +)"
+          className="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-all border border-white/10"
+        >
+          🔍 +
+        </button>
+        
+        <div className="w-px h-4 bg-white/10"></div>
+
+        <button
+          onClick={handleReset}
+          title="Restablecer tamaño original"
+          className="text-xs font-bold text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+        >
+          ↺ Reset
+        </button>
+      </div>
+
+      {/* BOTÓN CERRAR */}
+      <button
+        onClick={onClose}
+        title="Cerrar vista previa"
+        className="absolute top-5 right-5 z-20 bg-slate-900/90 hover:bg-rose-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center border border-white/10 cursor-pointer shadow-xl transition-all"
+      >
+        ✕
+      </button>
+
+      {/* CONTENEDOR DE LA IMAGEN CON PAN Y WHEEL ZOOM */}
+      <div
+        className="relative max-w-[90vw] max-h-[85vh] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
+        onClick={(e) => e.stopPropagation()}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <img
+          src={image.src}
+          alt={image.title || "Imagen ampliada"}
+          style={{
+            transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
+            transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+          }}
+          className="max-w-[85vw] max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ========================================================
+// COMPONENTE PRINCIPAL CHAT HUB
+// ========================================================
 export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, filterServiceId, showToast }) {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -18,9 +140,12 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  // Estado de confirmación de borrado de chat personalizado
+  // Estado de confirmación de borrado de chat
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [targetDeleteChatId, setTargetDeleteChatId] = useState(null);
+
+  // Estado para la imagen en Zoom Lightbox
+  const [activeZoomImage, setActiveZoomImage] = useState(null);
 
   const chatBottomRef = useRef(null);
 
@@ -150,7 +275,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     setShowDeleteConfirmModal(true);
   };
 
-  // Ejecutar eliminación sin window.confirm
+  // Ejecutar eliminación
   const executeDeleteChat = async () => {
     if (!targetDeleteChatId) return;
     const reqId = targetDeleteChatId;
@@ -352,9 +477,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                               {(req.solicitanteNombre || 'S').charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 ${
-                            isPending ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
-                          }`}></span>
+                          {isPending && (
+                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 bg-amber-400 animate-pulse" title="Pendiente de respuesta"></span>
+                          )}
                         </div>
 
                         <div className="flex-1 overflow-hidden">
@@ -405,9 +530,11 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                               {(req.autorServicioNombre || 'T').charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 ${
-                            isPending ? 'bg-amber-400 animate-pulse' : req.estado === 'aceptado' ? 'bg-emerald-400' : 'bg-rose-400'
-                          }`}></span>
+                          {isPending ? (
+                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 bg-amber-400 animate-pulse" title="Pendiente de aprobación"></span>
+                          ) : req.estado === 'rechazado' ? (
+                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-950 bg-rose-500" title="Rechazado"></span>
+                          ) : null}
                         </div>
 
                         <div className="flex-1 overflow-hidden">
@@ -502,7 +629,13 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                   {selectedRequest.mediaUrl && (
                     <div className="pt-2">
                       {selectedRequest.mediaUrl.startsWith('data:image') ? (
-                        <img src={selectedRequest.mediaUrl} alt="Adjunto de propuesta" className="max-h-48 rounded-xl border border-white/10 object-cover" />
+                        <img 
+                          src={selectedRequest.mediaUrl} 
+                          alt="Adjunto de propuesta" 
+                          onClick={() => setActiveZoomImage({ src: selectedRequest.mediaUrl, title: selectedRequest.tituloPeticion })}
+                          className="max-h-48 rounded-xl border border-white/10 object-cover cursor-pointer hover:opacity-90 hover:scale-[1.01] transition-all" 
+                          title="Haz clic para ver en pantalla completa y hacer Zoom 🔍"
+                        />
                       ) : (
                         <a href={selectedRequest.mediaUrl} download className="text-xs text-indigo-300 font-bold bg-indigo-500/10 px-3 py-1.5 rounded-xl border border-indigo-500/20 inline-block">
                           📎 Descargar archivo adjunto
@@ -618,7 +751,13 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
                                 {msg.mediaUrl && (
                                   <div className="mt-2">
-                                    <img src={msg.mediaUrl} alt="Adjunto chat" className="max-h-40 rounded-lg object-cover" />
+                                    <img 
+                                      src={msg.mediaUrl} 
+                                      alt="Adjunto chat" 
+                                      onClick={() => setActiveZoomImage({ src: msg.mediaUrl, title: `Imagen enviada por ${msg.emisorNombre}` })}
+                                      className="max-h-48 rounded-lg object-cover cursor-pointer hover:opacity-90 hover:scale-[1.01] transition-all border border-white/10" 
+                                      title="Haz clic para ver en pantalla completa y hacer Zoom 🔍"
+                                    />
                                   </div>
                                 )}
                               </div>
@@ -719,6 +858,16 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
             </div>
           </div>
         </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* LIGHTBOX DE VISTA PREVIA Y ZOOM INTERACTIVO DE IMÁGENES  */}
+      {/* ======================================================== */}
+      {activeZoomImage && (
+        <ZoomableImageModal
+          image={activeZoomImage}
+          onClose={() => setActiveZoomImage(null)}
+        />
       )}
 
     </div>

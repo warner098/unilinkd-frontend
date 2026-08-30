@@ -95,14 +95,15 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate, on
               const isRejected = n.tipo === 'publicacion_rechazada' || n.tipo === 'peticion_rechazada';
               const isApproved = n.tipo === 'publicacion_aprobada' || n.tipo === 'peticion_aceptada';
               const isRequest = n.tipo === 'peticion_recibida' || n.tipo === 'peticion_aceptada' || n.requestId;
+              const notifId = n._id || n.id;
 
               return (
                 <div
-                  key={n._id || n.id}
+                  key={notifId}
                   className={`p-4 rounded-2xl border transition-all text-left space-y-3 ${
                     !n.leido
                       ? 'bg-slate-900/90 border-indigo-500/40 shadow-lg shadow-indigo-500/10'
-                      : 'bg-slate-950/50 border-white/5'
+                      : 'bg-slate-950/50 border-white/5 opacity-80'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -113,9 +114,13 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate, on
                       <h4 className="text-xs font-extrabold text-white font-heading">{n.titulo}</h4>
                     </div>
 
-                    {!n.leido && (
+                    {!n.leido ? (
                       <span className="bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse">
                         Nuevo
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 text-[10px] font-mono-code">
+                        Leído ✓
                       </span>
                     )}
                   </div>
@@ -126,8 +131,8 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate, on
 
                   {isRequest && onOpenChatRequest && (
                     <button
-                      onClick={() => {
-                        handleMarkAsRead(n._id || n.id);
+                      onClick={async () => {
+                        await handleMarkAsRead(notifId);
                         onOpenChatRequest(n.requestId);
                         onClose();
                       }}
@@ -140,15 +145,15 @@ export default function NotificationsModal({ isOpen, onClose, user, onUpdate, on
                   <div className="flex items-center justify-end gap-2 pt-1 border-t border-white/5">
                     {!n.leido && (
                       <button
-                        onClick={() => handleMarkAsRead(n._id || n.id)}
-                        className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                        onClick={() => handleMarkAsRead(notifId)}
+                        className="text-[11px] font-extrabold text-indigo-400 hover:text-indigo-300 cursor-pointer hover:underline transition-colors"
                       >
                         ✓ Marcar leída
                       </button>
                     )}
                     <button
-                      onClick={() => handleDeleteNotification(n._id || n.id)}
-                      className="text-[11px] font-bold text-slate-500 hover:text-rose-400 cursor-pointer ml-2"
+                      onClick={() => handleDeleteNotification(notifId)}
+                      className="text-[11px] font-bold text-slate-500 hover:text-rose-400 cursor-pointer ml-2 transition-colors"
                     >
                       Eliminar
                     </button>
