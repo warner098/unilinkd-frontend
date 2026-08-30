@@ -12,8 +12,17 @@ function ZoomableImageModal({ image, onClose }) {
 
   if (!image || !image.src) return null;
 
-  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.3, 4));
-  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.3, 0.5));
+  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 4));
+  const handleZoomOut = () => {
+    setScale(prev => {
+      const nextScale = Math.max(prev - 0.25, 1);
+      if (nextScale === 1) {
+        setPosition({ x: 0, y: 0 });
+      }
+      return nextScale;
+    });
+  };
+
   const handleReset = () => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
@@ -43,6 +52,13 @@ function ZoomableImageModal({ image, onClose }) {
 
   const handleMouseUp = () => setIsDragging(false);
 
+  // Auto-centrar la imagen cuando se vuelve a la escala normal 1 (100%)
+  useEffect(() => {
+    if (scale <= 1) {
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [scale]);
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl animate-fade-in select-none p-4"
@@ -60,8 +76,9 @@ function ZoomableImageModal({ image, onClose }) {
 
         <button
           onClick={handleZoomOut}
+          disabled={scale <= 1}
           title="Alejar (Zoom -)"
-          className="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-all border border-white/10"
+          className="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-all border border-white/10"
         >
           🔍 -
         </button>
@@ -70,8 +87,9 @@ function ZoomableImageModal({ image, onClose }) {
         </span>
         <button
           onClick={handleZoomIn}
+          disabled={scale >= 4}
           title="Acercar (Zoom +)"
-          className="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-all border border-white/10"
+          className="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer transition-all border border-white/10"
         >
           🔍 +
         </button>
@@ -110,7 +128,7 @@ function ZoomableImageModal({ image, onClose }) {
           src={image.src}
           alt={image.title || "Imagen ampliada"}
           style={{
-            transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
+            transform: `translate(${scale === 1 ? 0 : position.x}px, ${scale === 1 ? 0 : position.y}px) scale(${scale})`,
             transition: isDragging ? 'none' : 'transform 0.2s ease-out'
           }}
           className="max-w-[85vw] max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-white/10"
