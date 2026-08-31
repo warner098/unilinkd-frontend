@@ -28,7 +28,7 @@ const HABILIDADES_POR_AREA = {
   'Salud & Bienestar': ['Primeros Auxilios', 'Anatomía', 'Nutrición']
 };
 
-export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
+export default function EditProfileModal({ isOpen, onClose, user, onSave, onOpenPortfolio }) {
   if (!isOpen) return null;
 
   const areasIniciales = user?.areas || [user?.areaRegistro || 'Tecnologías de la Información / Software'];
@@ -103,10 +103,30 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
         
         {/* Encabezado Personal */}
         <div className="flex justify-between items-center border-b pb-4 border-slate-200">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900 font-heading">Editar Perfil Personal</h2>
-            <p className="text-xs font-medium text-slate-600">Actualiza tus datos académicos e información general.</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-900 font-heading">Editar Perfil Personal</h2>
+              <p className="text-xs font-medium text-slate-600">Actualiza tus datos académicos e información general.</p>
+            </div>
+
+            {/* BOTÓN MI PORTAFOLIO */}
+            {onOpenPortfolio && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenPortfolio();
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer hover:scale-105"
+              >
+                💼 Mi Portafolio
+                <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+                  {user?.portafolio?.length || 0}
+                </span>
+              </button>
+            )}
           </div>
+
           <button 
             onClick={onClose} 
             className="text-slate-400 hover:text-slate-700 font-bold text-xl px-2 py-1 rounded-xl hover:bg-slate-100 transition-colors"
@@ -314,20 +334,35 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
           </div>
 
           {/* Botones de acción */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-xs font-extrabold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-md shadow-indigo-200 cursor-pointer"
-            >
-              Guardar Perfil
-            </button>
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200">
+            {onOpenPortfolio && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenPortfolio();
+                }}
+                className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                💼 Ver / Gestionar Mi Portafolio ({user?.portafolio?.length || 0})
+              </button>
+            )}
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl text-xs font-extrabold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-md shadow-indigo-200 cursor-pointer"
+              >
+                Guardar Perfil
+              </button>
+            </div>
           </div>
 
         </form>

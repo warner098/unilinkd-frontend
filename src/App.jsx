@@ -15,6 +15,7 @@ import EditPublicationModal from './components/EditPublicationModal';
 import ToastContainer from './components/ToastContainer';
 import RequestHelpModal from './components/RequestHelpModal';
 import ChatHubModal from './components/ChatHubModal';
+import PortfolioModal from './components/PortfolioModal';
 
 import { API_BASE_URL } from './config/api';
 
@@ -35,6 +36,7 @@ function App() {
   
   // Modales
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isPortfolioOpen, setIsPortfolioOpen] = useState(false);
   const [isPublicationOpen, setIsPublicationOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -149,39 +151,47 @@ function App() {
       const interval = setInterval(fetchUserNotificationsCount, 5000);
       return () => clearInterval(interval);
     }
-  }, [user, refreshKey]);
+  }, [user]);
 
-  // CONSULTA PERIÓDICA DE PUBLICACIONES PENDIENTES PARA EL ADMIN
-  const fetchPendingCount = async () => {
-    if (user?.rol !== 'admin') return;
-    try {
-      const [resP, resS] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/projects?estado=pendiente`),
-        fetch(`${API_BASE_URL}/api/services?estado=pendiente`)
-      ]);
-
-      if (resP.ok && resS.ok) {
-        const pData = await resP.json();
-        const sData = await resS.json();
-        const newTotal = pData.length + sData.length;
-
-        if (newTotal > pendingCount && newTotal > 0) {
-          setShowNotificationToast(true);
-        }
-
-        setPendingCount(newTotal);
-      }
-    } catch (err) {
-      console.error('Error al consultar solicitudes pendientes:', err);
-    }
-  };
-
+  // CONSULTAR SOLICITUDES PENDIENTES DEL ADMIN
   useEffect(() => {
-    if (user?.rol === 'admin') {
-      fetchPendingCount();
-      const interval = setInterval(fetchPendingCount, 4000);
-      return () => clearInterval(interval);
-    }
+    let isMounted = true;
+    const fetchPendingCount = async () => {
+      if (user && user.rol === 'admin') {
+        try {
+          const [resServices, resProjects] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/services?estado=pendiente`),
+            fetch(`${API_BASE_URL}/api/projects?estado=pendiente`)
+          ]);
+          
+          if (resServices.ok && resProjects.ok) {
+            const services = await resServices.json();
+            const projects = await resProjects.json();
+            const total = services.length + projects.length;
+
+            if (isMounted) {
+              setPendingCount((prev) => {
+                if (total > prev && prev !== 0) {
+                  setShowNotificationToast(true);
+                  setTimeout(() => setShowNotificationToast(false), 5000);
+                }
+                return total;
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Error al obtener contadores pendientes:', err);
+        }
+      }
+    };
+
+    fetchPendingCount();
+    const interval = setInterval(fetchPendingCount, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [user, refreshKey]);
 
   const handleOpenAuth = (tab = 'login') => {
@@ -189,144 +199,142 @@ function App() {
     setIsAuthOpen(true);
   };
 
-  const handleOpenPublicationModal = () => {
-    if (!user) {
-      alert('Debes iniciar sesión para publicar un servicio o proyecto.');
-      handleOpenAuth('login');
-      return;
-    }
-    setIsPublicationOpen(true);
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setDashboardTab('servicios');
+    showToast('Sesión cerrada con éxito.', 'info');
   };
 
-  const handleOpenAdminModal = () => {
-    if (user?.rol !== 'admin') {
-      alert('Solo las cuentas con rol de Administrador pueden acceder a este panel.');
-      return;
+  const handleSaveProfile = async (updatedData) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/perfil`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: user.id || user._id,
+          correo: user.correo,
+          ...updatedData
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updatedUser = data.user;
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        showToast('Perfil actualizado con éxito en la base de datos.', 'success');
+      } else {
+        const newUser = { ...user, ...updatedData };
+        setUser(newUser);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        showToast('Perfil actualizado localmente.', 'info');
+      }
+    } catch (err) {
+      console.error('Error al guardar perfil:', err);
+      const newUser = { ...user, ...updatedData };
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      showToast('Perfil guardado en modo local.', 'info');
     }
-    setShowNotificationToast(false);
-    setIsAdminModalOpen(true);
   };
 
-  const handleOpenEditPublication = (item, type) => {
+  const handleUpdateUserData = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  const handlePublicationSuccess = () => {
+    setRefreshKey((prev) => prev + 1);
+    if (user && user.rol === 'admin') {
+      showToast('Publicación procesada exitosamente como Administrador.', 'success');
+    } else {
+      showToast('¡Tu propuesta se envió a revisión! El Administrador la aprobará pronto. 🚀', 'success');
+    }
+  };
+
+  const handleAdminUpdate = () => {
+    setRefreshKey((prev) => prev + 1);
+    showToast('Base de datos y catálogo de etiquetas actualizados.', 'success');
+  };
+
+  const handleEditItem = (item, type) => {
     setEditingItem(item);
     setEditingItemType(type);
     setIsEditOpen(true);
   };
 
-  const handleNavigate = (tabName) => {
-    setActiveTab(tabName);
-    const section = document.getElementById('seccion-explorar');
-    if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleSaveProfile = async (updatedData) => {
-    const usuarioActualizado = { ...user, ...updatedData };
-    
-    setUser(usuarioActualizado);
-    localStorage.setItem('user', JSON.stringify(usuarioActualizado));
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/perfil`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: user?.id || user?._id,
-          correo: user?.correo,
-          ...updatedData
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.user) {
-          setUser(data.user);
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
-      }
-    } catch (error) {
-      console.error('Error al conectar con el Backend:', error);
-    }
-  };
-
-  const handlePublicationSuccess = () => {
-    setRefreshKey((prev) => prev + 1);
-    fetchPendingCount();
-    fetchUserNotificationsCount();
-  };
-
-  const handleAdminUpdate = () => {
-    setRefreshKey((prev) => prev + 1);
-    fetchPendingCount();
-    fetchUserNotificationsCount();
-  };
-
   return (
-    <div className="min-h-screen bg-[#07090E] text-slate-100 font-sans relative selection:bg-indigo-500/30 selection:text-indigo-200">
-      <Navbar 
-        user={user} 
-        onOpenAuth={handleOpenAuth} 
-        onNavigate={handleNavigate} 
-        onOpenProfile={() => setIsProfileOpen(true)}
-        onOpenAdmin={handleOpenAdminModal}
-        onOpenNotifications={() => setIsNotificationsOpen(true)}
-        onOpenMyPublications={() => setDashboardTab('mis-publicaciones')}
-        onOpenChatHub={() => handleOpenChatHub()}
-        pendingCount={pendingCount}
-        unreadNotifCount={unreadNotifCount}
-      />
+    <div className="min-h-screen bg-[#07090E] text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col justify-between relative overflow-x-hidden">
+      
+      {/* GLOW DE FONDO AMBIENTAL TIPO AWWWARDS */}
+      <div className="glow-orb-dark bg-indigo-600/20 w-[600px] h-[600px] -top-30 -left-30"></div>
+      <div className="glow-orb-dark bg-violet-600/15 w-[500px] h-[500px] top-60 -right-20"></div>
 
-      {/* TOAST DE NOTIFICACIÓN EN TIEMPO REAL PARA EL ADMINISTRADOR */}
-      {user?.rol === 'admin' && showNotificationToast && pendingCount > 0 && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 max-w-sm flex items-center justify-between gap-3 animate-bounce">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🔔</span>
-            <div>
-              <h5 className="font-extrabold text-xs text-amber-400">¡Nueva solicitud recibida!</h5>
-              <p className="text-[11px] text-gray-300">
-                Tienes {pendingCount} {pendingCount === 1 ? 'publicación pendiente' : 'publicaciones pendientes'} de revisión.
-              </p>
-            </div>
+      {/* TOAST DE NOTIFICACIÓN DE ADMINISTRADOR */}
+      {showNotificationToast && (
+        <div className="fixed top-20 right-5 z-50 bg-indigo-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce border border-indigo-400/40">
+          <span className="text-xl">🔔</span>
+          <div>
+            <p className="text-xs font-bold">¡Nueva solicitud recibida!</p>
+            <p className="text-[11px] opacity-90">Tienes {pendingCount} publicaciones pendientes por revisar.</p>
           </div>
-          <button
-            onClick={handleOpenAdminModal}
-            className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-extrabold text-xs px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap shadow-xs"
-          >
-            Revisar
-          </button>
         </div>
       )}
 
+      {/* NAVBAR NAVEGACIÓN GLOBAL */}
+      <Navbar 
+        user={user} 
+        onOpenAuth={handleOpenAuth} 
+        onLogout={handleLogout}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenPortfolio={() => setIsPortfolioOpen(true)}
+        onOpenPublication={() => setIsPublicationOpen(true)}
+        onOpenAdmin={() => setIsAdminModalOpen(true)}
+        onOpenNotifications={() => setIsNotificationsOpen(false)}
+        onOpenChatHub={() => handleOpenChatHub()}
+        pendingCount={pendingCount}
+        unreadNotifCount={unreadNotifCount}
+        onSelectDashboardTab={(tab) => {
+          setDashboardTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+
+      {/* VISTA PRINCIPAL O DASHBOARD DEL USUARIO */}
       {user ? (
-        <Dashboard 
-          key={`dashboard-${refreshKey}`} 
-          user={user} 
-          onOpenPublicationModal={handleOpenPublicationModal}
-          onOpenAdmin={handleOpenAdminModal}
-          onEditPublication={handleOpenEditPublication}
-          onRequestHelp={handleOpenRequestHelp}
-          onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
-          initialDashboardTab={dashboardTab}
-        />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 relative z-10">
+          <Dashboard 
+            user={user}
+            onOpenPublicationModal={() => setIsPublicationOpen(true)}
+            onOpenAdmin={() => setIsAdminModalOpen(true)}
+            onEditPublication={handleEditItem}
+            onRequestHelp={handleOpenRequestHelp}
+            onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
+            initialDashboardTab={dashboardTab}
+          />
+        </main>
       ) : (
         <>
-          <main>
-            <Hero onOpenAuth={handleOpenAuth} />
+          <main className="flex-1 relative z-10">
+            <Hero 
+              onOpenAuth={handleOpenAuth} 
+              onOpenPublication={() => setIsPublicationOpen(true)}
+            />
             <Features />
             <ContentSection 
-              key={`content-${refreshKey}`}
-              activeTab={activeTab} 
-              setActiveTab={setActiveTab} 
-              onOpenPublicationModal={handleOpenPublicationModal}
-              onRequestHelp={handleOpenRequestHelp}
-              onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
+              key={refreshKey} 
+              onOpenAuth={handleOpenAuth} 
               user={user}
+              onOpenPublication={() => setIsPublicationOpen(true)}
+              onRequestHelp={handleOpenRequestHelp}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
             />
             <HowItWorks />
           </main>
+
           <Footer onOpenAuth={handleOpenAuth} />
         </>
       )}
@@ -349,6 +357,16 @@ function App() {
         onClose={() => setIsProfileOpen(false)}
         user={user}
         onSave={handleSaveProfile}
+        onOpenPortfolio={() => setIsPortfolioOpen(true)}
+      />
+
+      {/* Modal Portafolio Personal */}
+      <PortfolioModal
+        isOpen={isPortfolioOpen}
+        onClose={() => setIsPortfolioOpen(false)}
+        user={user}
+        onUpdateUser={handleUpdateUserData}
+        showToast={showToast}
       />
 
       {/* Modal Publicar Servicio o Proyecto */}
