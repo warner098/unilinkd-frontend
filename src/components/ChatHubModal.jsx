@@ -844,7 +844,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 truncate">
-                    Servicio: <span className="text-indigo-400 font-bold">{selectedRequest.servicioTitulo}</span> | Solicitante: <span className="text-white font-bold cursor-pointer hover:underline hover:text-indigo-300" onClick={() => onOpenPublicProfile && onOpenPublicProfile(selectedRequest.solicitanteId || selectedRequest.solicitanteNombre)}>{selectedRequest.solicitanteNombre}</span>
+                    Servicio: <span className="text-indigo-400 font-bold">{selectedRequest.servicioTitulo}</span> | Solicitante: <span className="text-white font-bold cursor-pointer hover:underline hover:text-indigo-300" onClick={() => onOpenPublicProfile && onOpenPublicProfile((selectedRequest.solicitanteId && selectedRequest.solicitanteId.length === 24) ? selectedRequest.solicitanteId : selectedRequest.solicitanteNombre)}>{selectedRequest.solicitanteNombre}</span>
                   </p>
                 </div>
 
@@ -1014,12 +1014,12 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                                 src={emisorAvatar} 
                                 alt={msg.emisorNombre} 
                                 className="w-8 h-8 rounded-xl object-cover shrink-0 border border-white/10 ring-1 ring-indigo-500/30 cursor-pointer hover:scale-105 transition-transform" 
-                                onClick={() => onOpenPublicProfile && onOpenPublicProfile(msg.emisorId || msg.emisorNombre)}
+                                onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : msg.emisorNombre)}
                               />
                             ) : (
                               <div 
                                 className="w-8 h-8 rounded-xl bg-slate-800 text-indigo-300 font-bold text-xs flex items-center justify-center shrink-0 border border-white/10 cursor-pointer hover:scale-105 transition-transform"
-                                onClick={() => onOpenPublicProfile && onOpenPublicProfile(msg.emisorId || msg.emisorNombre)}
+                                onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : msg.emisorNombre)}
                               >
                                 {(msg.emisorNombre || 'E').charAt(0).toUpperCase()}
                               </div>
@@ -1029,7 +1029,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                               <div className="flex items-center gap-2 px-1">
                                 <span 
                                   className="text-[11px] font-bold text-slate-300 cursor-pointer hover:text-indigo-300 hover:underline transition-colors"
-                                  onClick={() => onOpenPublicProfile && onOpenPublicProfile(msg.emisorId || msg.emisorNombre)}
+                                  onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : msg.emisorNombre)}
                                 >
                                   {msg.emisorNombre}
                                 </span>
