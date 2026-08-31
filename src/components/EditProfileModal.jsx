@@ -46,6 +46,27 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave, onOpen
     fotoUrl: user?.fotoUrl || ''
   });
 
+  // Sincronizar datos del formulario cuando las props de user cambian
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        nombre: user.nombre || '',
+        titulo: user.titulo || '',
+        facultad: user.facultad || 'Facultad de Ciencias Informáticas y Sistemas',
+        carrera: user.carrera || '',
+        semestre: user.semestre || '1mo Semestre',
+        bio: user.bio || '',
+        fotoUrl: user.fotoUrl || ''
+      });
+      if (user.areas && user.areas.length > 0) {
+        setAreasSeleccionadas(user.areas);
+      }
+      if (user.habilidades) {
+        setHabilidadesSeleccionadas(user.habilidades);
+      }
+    }
+  }, [user, isOpen]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

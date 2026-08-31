@@ -23,7 +23,7 @@ export default function JoinProjectModal({ isOpen, onClose, project, user, showT
         servicioTitulo: project.titulo,
         autorServicioId: project.autorId || project.autor,
         autorServicioNombre: project.autor || 'Estudiante Convocante',
-        autorServicioFoto: '',
+        autorServicioFoto: project.autorFoto || project.fotoUrl || '',
         solicitanteId: user.id || user._id,
         solicitanteNombre: user.nombre,
         solicitanteFoto: user.fotoUrl || '',

@@ -136,6 +136,7 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
           ...projectData,
           autor: user?.nombre || 'Estudiante UniLinkd',
           autorId: user?.id || user?._id,
+          autorFoto: user?.fotoUrl || '',
           userRol: user?.rol
         })
       });

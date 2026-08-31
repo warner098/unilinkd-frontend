@@ -786,8 +786,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         }`}
                       >
                         <div className="relative">
-                          {req.autorServicioFoto ? (
-                            <img src={req.autorServicioFoto} alt={req.autorServicioNombre} className="w-9 h-9 rounded-xl object-cover border border-white/10" />
+                          {req.autorServicioFoto || (user && (req.autorServicioNombre === user.nombre || req.autorServicioId === user.id || req.autorServicioId === user._id) && user.fotoUrl) ? (
+                            <img src={req.autorServicioFoto || user.fotoUrl} alt={req.autorServicioNombre} className="w-9 h-9 rounded-xl object-cover border border-white/10" />
                           ) : (
                             <div className="w-9 h-9 bg-slate-800 text-indigo-300 font-black text-xs rounded-xl flex items-center justify-center border border-white/10">
                               {(req.autorServicioNombre || 'T').charAt(0).toUpperCase()}
