@@ -337,6 +337,10 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   };
 
+  const mainScrollPanelRef = useRef(null);
+  const prevMsgCountRef = useRef(0);
+  const prevChatIdRef = useRef(null);
+
   useEffect(() => {
     if (isOpen && user) {
       if (initialRequestId) {
@@ -350,10 +354,38 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   }, [isOpen, user, initialRequestId, filterServiceId]);
 
+  // CONTROL INTELIGENTE DE SCROLL: No desborda ni fuerza scroll abajo cuando el usuario está leyendo mensajes anteriores
   useEffect(() => {
-    // Scroll al final del chat cuando llegan nuevos mensajes
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [selectedRequest?.mensajes]);
+    if (!selectedRequest) return;
+    const currentId = selectedRequest._id || selectedRequest.id;
+    const currentCount = selectedRequest.mensajes ? selectedRequest.mensajes.length : 0;
+
+    // 1. Si cambió de canal/chat, ir al final una sola vez
+    if (prevChatIdRef.current !== currentId) {
+      prevChatIdRef.current = currentId;
+      prevMsgCountRef.current = currentCount;
+      setTimeout(() => {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 50);
+      return;
+    }
+
+    // 2. Si es el mismo chat, sólo hacer scroll si AUMENTÓ la cantidad de mensajes
+    if (currentCount > prevMsgCountRef.current) {
+      prevMsgCountRef.current = currentCount;
+
+      if (mainScrollPanelRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = mainScrollPanelRef.current;
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 180;
+
+        if (isNearBottom) {
+          chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [selectedRequest?.mensajes, selectedRequest?._id, selectedRequest?.id]);
 
   if (!isOpen) return null;
 
@@ -716,8 +748,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                 </button>
               </div>
 
-              {/* CONTENIDO DEL PANEL */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              {/* CONTENIDO DEL PANEL CON DECTECIÓN DE POSICIÓN DE SCROLL */}
+              <div ref={mainScrollPanelRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
                 
                 {/* TARJETA DE LA PROPUESTA INICIAL ENVIADA */}
                 <div className="bento-card p-5 space-y-3 bg-slate-950/60 border border-white/10">
