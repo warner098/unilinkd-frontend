@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config/api';
 
 // ========================================================
@@ -209,7 +209,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   // Estado del mensaje de chat y archivo adjunto
   const [newMessageText, setNewMessageText] = useState('');
   const [messageMediaUrl, setMessageMediaUrl] = useState('');
-  const [attachmentFile, setAttachmentFile] = useState(null); // { name, size, type, dataUrl }
+  const [attachmentFile, setAttachmentFile] = useState(null);
   const [sendingMessage, setSendingMessage] = useState(false);
 
   // Estado de rechazo
@@ -226,8 +226,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   const chatBottomRef = useRef(null);
   const mainScrollPanelRef = useRef(null);
 
-  // CONTROL INTELIGENTE DE SCROLL Y RE-RENDERS
+  // CONTROL INTELIGENTE DE SCROLL Y PRESERVACIÓN RIGUROSA DE POSICIÓN
   const isUserScrolledUpRef = useRef(false);
+  const savedScrollTopRef = useRef(0);
   const [showScrollDownBtn, setShowScrollDownBtn] = useState(false);
   const prevMsgCountRef = useRef(0);
   const prevChatIdRef = useRef(null);
@@ -284,7 +285,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext);
   };
 
-  // Cargar peticiones del usuario (Evita re-renderizados innecesarios comparando el contenido)
+  // Cargar peticiones del usuario con comparación estricta para evitar re-renders si la info no ha cambiado
   const fetchRequests = async () => {
     if (!user) return;
     const userId = user.id || user._id;
@@ -312,25 +313,31 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
           }
         }
 
-        setRequests(activeData);
+        // 1. PRESERVAR REFERENCIA DE REQUESTS
+        setRequests(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(activeData)) {
+            return prev;
+          }
+          return activeData;
+        });
 
         const currentSelectedId = activeSelectedIdRef.current;
 
         if (currentSelectedId) {
           const found = activeData.find(r => (r._id || r.id) === currentSelectedId);
           if (found) {
+            // 2. PRESERVAR REFERENCIA DE SELECTED REQUEST
             setSelectedRequest(prev => {
               if (!prev) return found;
               const prevId = prev._id || prev.id;
               const foundId = found._id || found.id;
               
-              // Si no cambió el ID y el contenido de mensajes es idéntico, PRESERVAR LA MISMA REFERENCIA DE ESTADO
               if (
                 prevId === foundId &&
                 prev.estado === found.estado &&
                 JSON.stringify(prev.mensajes) === JSON.stringify(found.mensajes)
               ) {
-                return prev;
+                return prev; // MISMA REFERENCIA DE OBJETO -> NINGÚN RE-RENDER
               }
               return found;
             });
@@ -371,14 +378,25 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   }, [isOpen, user, initialRequestId, filterServiceId]);
 
-  // DETECTAR DESPLAZAMIENTO MANUAL DEL USUARIO
+  // CAPTURAR LA POSICIÓN EXACTA DE SCROLL DEL USUARIO AL MOVER LA RUEDA O EL TOUCH
   const handlePanelScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     const distanceToBottom = scrollHeight - scrollTop - clientHeight;
     const isUp = distanceToBottom > 100;
+    
     isUserScrolledUpRef.current = isUp;
+    if (isUp) {
+      savedScrollTopRef.current = scrollTop;
+    }
     setShowScrollDownBtn(isUp);
   };
+
+  // RESTAURACIÓN SYNCRÓNICA DE SCROLL ANTES DE QUE EL NAVEGADOR PINTE LA PANTALLA
+  useLayoutEffect(() => {
+    if (isUserScrolledUpRef.current && mainScrollPanelRef.current) {
+      mainScrollPanelRef.current.scrollTop = savedScrollTopRef.current;
+    }
+  });
 
   // SCROLL EXPLÍCITO HACIA EL FINAL
   const scrollToBottom = (behavior = 'smooth') => {
@@ -387,7 +405,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     chatBottomRef.current?.scrollIntoView({ behavior });
   };
 
-  // EFECTO DE SCROLL INTELIGENTE: Jamás desplaza abajo si el usuario está leyendo arriba
+  // CONTROL INTELIGENTE DE SCROLL AL CAMBIAR DE CHAT O LLEGAR NUEVOS MENSAJES
   useEffect(() => {
     if (!selectedRequest) return;
     const currentId = selectedRequest._id || selectedRequest.id;
@@ -405,7 +423,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       return;
     }
 
-    // 2. Si el usuario subió la pantalla para ver mensajes anteriores, NUNCA forzar scroll abajo
+    // 2. Si el usuario está leyendo arriba, NUNCA forzar scroll abajo
     if (isUserScrolledUpRef.current) {
       prevMsgCountRef.current = currentCount;
       return;
@@ -970,7 +988,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                                         src={msg.mediaUrl} 
                                         alt={msg.nombreArchivo || "Adjunto chat"} 
                                         onClick={() => setActiveZoomImage({ src: msg.mediaUrl, title: `Imagen enviada por ${msg.emisorNombre}` })}
-                                        className="max-h-48 rounded-xl object-cover cursor-pointer hover:opacity-90 hover:scale-[1.01] transition-all border border-white/10 shadow-md" 
+                                        className="max-h-48 rounded-xl object-cover cursor-pointer hover:opacity-90 hover:scale-[1.01] transition-all border border-white/10 shadow-md min-h-[120px]" 
                                         title="Haz clic para ver en pantalla completa y hacer Zoom 🔍"
                                       />
                                     ) : (
