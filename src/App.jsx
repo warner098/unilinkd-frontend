@@ -332,7 +332,7 @@ function App() {
         onOpenPortfolio={() => setIsPortfolioOpen(true)}
         onOpenPublication={() => setIsPublicationOpen(true)}
         onOpenAdmin={() => setIsAdminModalOpen(true)}
-        onOpenNotifications={() => setIsNotificationsOpen(false)}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenChatHub={() => handleOpenChatHub()}
         pendingCount={pendingCount}
         unreadNotifCount={unreadNotifCount}

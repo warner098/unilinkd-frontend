@@ -53,7 +53,7 @@ export default function PublicProfileModal({
   const proyectos = profileUser?.portafolio || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
       <div className="bg-[#0C0F19] text-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-white/10 relative max-h-[92vh] overflow-y-auto my-auto text-left space-y-6">
         
         {/* ENCABEZADO */}

@@ -4,7 +4,7 @@ export default function ProjectDetailModal({ isOpen, onClose, project, authorNam
   if (!isOpen || !project) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
       <div className="bg-[#0C0F19] text-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-white/10 relative max-h-[90vh] overflow-y-auto my-auto text-left space-y-6">
         
         {/* ENCABEZADO */}
