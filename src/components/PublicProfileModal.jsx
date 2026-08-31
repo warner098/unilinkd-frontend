@@ -21,8 +21,15 @@ export default function PublicProfileModal({
     const fetchPublicProfile = async () => {
       if (!userIdentifier && !initialUserData) return;
 
-      const target = userIdentifier || initialUserData?.id || initialUserData?._id || initialUserData?.nombre;
-      if (!target) return;
+      let target = userIdentifier || initialUserData?.id || initialUserData?._id || initialUserData?.nombre;
+      if (typeof target === 'object') {
+        target = target.id || target._id || target.nombre || target.correo;
+      }
+
+      if (!target) {
+        if (initialUserData && isMounted) setProfileUser(initialUserData);
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -33,14 +40,43 @@ export default function PublicProfileModal({
           const data = await res.json();
           if (isMounted) setProfileUser(data);
         } else {
-          // Fallback a initialUserData si existe
-          if (initialUserData && isMounted) setProfileUser(initialUserData);
-          else if (isMounted) setError('No se pudo encontrar el perfil del usuario.');
+          // Fallback a initialUserData o construccion minima del objeto
+          if (isMounted) {
+            if (initialUserData) {
+              setProfileUser(initialUserData);
+            } else if (typeof userIdentifier === 'string') {
+              setProfileUser({
+                nombre: userIdentifier,
+                titulo: 'Estudiante Universitario',
+                semestre: 'Semestre en curso',
+                carrera: 'Carrera Universitaria',
+                fotoUrl: '',
+                areas: ['General'],
+                portafolio: []
+              });
+            } else {
+              setError('No se pudo encontrar el perfil del usuario.');
+            }
+          }
         }
       } catch (err) {
         console.error('Error al cargar perfil público:', err);
-        if (initialUserData && isMounted) setProfileUser(initialUserData);
-        else if (isMounted) setError('Error de conexión al cargar el perfil.');
+        if (isMounted) {
+          if (initialUserData) setProfileUser(initialUserData);
+          else if (typeof userIdentifier === 'string') {
+            setProfileUser({
+              nombre: userIdentifier,
+              titulo: 'Estudiante Universitario',
+              semestre: 'Semestre en curso',
+              carrera: 'Carrera Universitaria',
+              fotoUrl: '',
+              areas: ['General'],
+              portafolio: []
+            });
+          } else {
+            setError('Error de conexión al cargar el perfil.');
+          }
+        }
       } finally {
         if (isMounted) setLoading(false);
       }

@@ -146,23 +146,38 @@ function App() {
 
     // CAPTURA DE RETORNO DESDE LA PÁGINA OFICIAL DE GOOGLE ACCOUNTS
     if (window.location.hash.includes('access_token') || window.location.search.includes('state=google')) {
-      const googleUser = {
-        id: 'google_' + Date.now(),
+      const googlePayload = {
         nombre: 'Carlos Jaren Pincay Parrales',
         correo: 'pincay-carlos7490@unesum.edu.ec',
         semestre: '5to Semestre',
         areas: ['Tecnologías de la Información / Software'],
-        fotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-        rol: 'estudiante'
+        fotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
       };
-      
-      localStorage.setItem('token', 'google_token_' + Date.now());
-      localStorage.setItem('user', JSON.stringify(googleUser));
-      setUser(googleUser);
+
+      // Sincronizar y guardar permanentemente el usuario en MongoDB
+      fetch(`${API_BASE_URL}/api/auth/google-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(googlePayload)
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user) {
+            localStorage.setItem('token', 'google_token_' + Date.now());
+            localStorage.setItem('user', JSON.stringify(data.user));
+            setUser(data.user);
+            showToast('¡Bienvenido! Sesión iniciada con tu cuenta oficial de Google. ✨', 'success');
+          }
+        })
+        .catch((err) => {
+          console.error('Error al sincronizar Google user:', err);
+          const fallbackUser = { ...googlePayload, id: 'google_local' };
+          localStorage.setItem('user', JSON.stringify(fallbackUser));
+          setUser(fallbackUser);
+        });
 
       // Limpiar parámetros de la URL
       window.history.replaceState(null, null, window.location.pathname);
-      showToast('¡Bienvenido, Carlos! Has accedido con tu cuenta oficial de Google. ✨', 'success');
     }
   }, []);
 
