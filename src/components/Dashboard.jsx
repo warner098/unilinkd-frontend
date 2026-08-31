@@ -142,7 +142,7 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
   const totalMyPublications = myServices.length + myProjects.length;
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-slate-100 py-4 sm:py-6 px-4 sm:px-6 lg:px-8 bg-grid-pattern-dark relative">
+    <div className="min-h-screen bg-[#07090E] text-slate-100 pt-3 pb-8 px-4 sm:px-6 lg:px-8 bg-grid-pattern-dark relative">
       
       {/* ORBES DE LUZ AMBIENTAL EN DEEP DARK */}
       <div className="glow-orb-dark w-[600px] h-[600px] bg-indigo-600/20 top-10 left-1/4"></div>

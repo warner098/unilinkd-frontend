@@ -304,7 +304,7 @@ function App() {
 
       {/* VISTA PRINCIPAL O DASHBOARD DEL USUARIO */}
       {user ? (
-        <main className="flex-1 w-full pt-16 relative z-10">
+        <main className="flex-1 w-full relative z-10">
           <Dashboard 
             user={user}
             onOpenPublicationModal={() => setIsPublicationOpen(true)}
