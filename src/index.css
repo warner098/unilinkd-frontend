@@ -25,40 +25,29 @@ h1, h2, h3, h4, .font-heading {
 }
 
 /* ======================================================== */
-/* REGLAS GLOBALES DE ALTO CONTRASTE PARA INPUTS Y FORMULARIOS */
+/* SISTEMA RIGUROSO DE ALTO CONTRASTE PARA INPUTS Y FORMULARIOS */
 /* ======================================================== */
-input, select, textarea {
-  color: #0F172A !important;
-}
 
-/* Modales o contenedores oscuros (Bento Dark) */
-.bg-slate-900 input,
-.bg-slate-900 select,
-.bg-slate-900 textarea,
-.bg-slate-950 input,
-.bg-slate-950 select,
-.bg-slate-950 textarea,
-.bg-\[\#0C0F19\] input,
-.bg-\[\#0C0F19\] select,
-.bg-\[\#0C0F19\] textarea,
-input.text-white,
-textarea.text-white,
-select.text-white {
-  color: #FFFFFF !important;
-}
-
-/* Modales blancos o campos con bg-white */
-.bg-white input,
-.bg-white select,
-.bg-white textarea,
-input.bg-white,
-select.bg-white,
-textarea.bg-white,
-input.text-slate-900,
-textarea.text-slate-900,
-select.text-slate-900 {
+/* INPUTS EN FONDOS CLAROS (EDITAR PERFIL, ETC) - TEXTO NEGRO OBSIDIANA */
+.input-light,
+input.input-light,
+select.input-light,
+textarea.input-light {
   color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
   background-color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+/* INPUTS EN FONDOS OSCUROS (CREAR PUBLICACIÓN, CHAT, ETC) - TEXTO BLANCO */
+.input-dark,
+input.input-dark,
+select.input-dark,
+textarea.input-dark {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background-color: #0F172A !important;
+  font-weight: 600 !important;
 }
 
 /* Estilo de texto Placeholder */
@@ -68,21 +57,23 @@ textarea::placeholder {
   opacity: 1;
 }
 
-/* Solución definitiva para Autocompletado de Google Chrome (Chrome Autofill) */
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active {
+/* Solución para Autocompletado de Google Chrome (Chrome Autofill) */
+input.input-light:-webkit-autofill,
+input.input-light:-webkit-autofill:hover, 
+input.input-light:-webkit-autofill:focus, 
+input.input-light:-webkit-autofill:active {
   -webkit-text-fill-color: #0F172A !important;
   -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
-.bg-slate-900 input:-webkit-autofill,
-.bg-\[\#0C0F19\] input:-webkit-autofill,
-input.text-white:-webkit-autofill {
+input.input-dark:-webkit-autofill,
+input.input-dark:-webkit-autofill:hover, 
+input.input-dark:-webkit-autofill:focus, 
+input.input-dark:-webkit-autofill:active {
   -webkit-text-fill-color: #FFFFFF !important;
   -webkit-box-shadow: 0 0 0px 1000px #0F172A inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Fondo de Malla Tecnológica Oscura */
