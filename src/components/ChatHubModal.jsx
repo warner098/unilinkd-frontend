@@ -1001,27 +1001,27 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                         const isMe = (msg.emisorId && currentUserId && msg.emisorId.toString() === currentUserId.toString()) ||
                                      (msg.emisorNombre && currentUserName && msg.emisorNombre.trim().toLowerCase() === currentUserName);
                         
-                        const emisorAvatar = msg.emisorFoto || (
-                          msg.emisorId === selectedRequest.solicitanteId 
-                            ? selectedRequest.solicitanteFoto 
-                            : selectedRequest.autorServicioFoto
-                        );
+                        const emisorAvatar = isMe 
+                          ? (user?.fotoUrl || msg.emisorFoto || (msg.emisorId === selectedRequest.solicitanteId ? selectedRequest.solicitanteFoto : selectedRequest.autorServicioFoto))
+                          : (msg.emisorFoto || (msg.emisorId === selectedRequest.solicitanteId ? selectedRequest.solicitanteFoto : selectedRequest.autorServicioFoto));
+
+                        const displayEmisorNombre = isMe ? (user?.nombre || msg.emisorNombre) : msg.emisorNombre;
 
                         return (
                           <div key={index} className={`flex items-start gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
                             {emisorAvatar ? (
                               <img 
                                 src={emisorAvatar} 
-                                alt={msg.emisorNombre} 
+                                alt={displayEmisorNombre} 
                                 className="w-8 h-8 rounded-xl object-cover shrink-0 border border-white/10 ring-1 ring-indigo-500/30 cursor-pointer hover:scale-105 transition-transform" 
-                                onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : msg.emisorNombre)}
+                                onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : displayEmisorNombre)}
                               />
                             ) : (
                               <div 
                                 className="w-8 h-8 rounded-xl bg-slate-800 text-indigo-300 font-bold text-xs flex items-center justify-center shrink-0 border border-white/10 cursor-pointer hover:scale-105 transition-transform"
-                                onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : msg.emisorNombre)}
+                                onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : displayEmisorNombre)}
                               >
-                                {(msg.emisorNombre || 'E').charAt(0).toUpperCase()}
+                                {(displayEmisorNombre || 'E').charAt(0).toUpperCase()}
                               </div>
                             )}
 
@@ -1029,9 +1029,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                               <div className="flex items-center gap-2 px-1">
                                 <span 
                                   className="text-[11px] font-bold text-slate-300 cursor-pointer hover:text-indigo-300 hover:underline transition-colors"
-                                  onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : msg.emisorNombre)}
+                                  onClick={() => onOpenPublicProfile && onOpenPublicProfile((msg.emisorId && msg.emisorId.length === 24) ? msg.emisorId : displayEmisorNombre)}
                                 >
-                                  {msg.emisorNombre}
+                                  {displayEmisorNombre}
                                 </span>
                                 <span className="text-[9px] text-slate-500 font-mono-code">
                                   {new Date(msg.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
