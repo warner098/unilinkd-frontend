@@ -206,9 +206,10 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   // Ref que mantiene el ID del chat seleccionado inmune a re-renders y closures de setInterval
   const activeSelectedIdRef = useRef(initialRequestId || null);
 
-  // Estado del mensaje de chat
+  // Estado del mensaje de chat y archivo adjunto
   const [newMessageText, setNewMessageText] = useState('');
   const [messageMediaUrl, setMessageMediaUrl] = useState('');
+  const [attachmentFile, setAttachmentFile] = useState(null); // { name, size, type, dataUrl }
   const [sendingMessage, setSendingMessage] = useState(false);
 
   // Estado de rechazo
@@ -252,6 +253,28 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     if (currentUserId && reqSolId && reqSolId === currentUserId.toString()) return true;
     if (currentUserName && reqSolNombre && reqSolNombre === currentUserName) return true;
     return false;
+  };
+
+  // Ayudantes de archivos
+  const getFileIcon = (fileName = '', fileType = '') => {
+    const ext = (fileName || '').split('.').pop()?.toLowerCase() || '';
+    if ((fileType && fileType.startsWith('image/')) || ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext)) return '🖼️';
+    if (ext === 'pdf') return '📄';
+    if (['doc', 'docx'].includes(ext)) return '📝';
+    if (['xls', 'xlsx', 'csv'].includes(ext)) return '📊';
+    if (['ppt', 'pptx'].includes(ext)) return '📊';
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return '📦';
+    if (['mp3', 'wav', 'ogg', 'aac'].includes(ext)) return '🎵';
+    if (['mp4', 'mkv', 'avi', 'mov'].includes(ext)) return '🎥';
+    if (['txt', 'json', 'js', 'py', 'html', 'css'].includes(ext)) return '📄';
+    return '📎';
+  };
+
+  const isMediaImage = (mediaUrl = '', fileName = '') => {
+    if (!mediaUrl) return false;
+    if (mediaUrl.startsWith('data:image/')) return true;
+    const ext = (fileName || '').split('.').pop()?.toLowerCase() || mediaUrl.split('.').pop()?.toLowerCase() || '';
+    return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext);
   };
 
   // Cargar peticiones del usuario
@@ -340,6 +363,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     activeSelectedIdRef.current = targetId;
     setSelectedRequest(req);
     setShowRejectInput(false);
+    setAttachmentFile(null);
+    setMessageMediaUrl('');
   };
 
   // Abrir modal de confirmación de borrado
@@ -437,7 +462,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   // Enviar mensaje en el chat
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessageText.trim() && !messageMediaUrl) return;
+    if (!newMessageText.trim() && !attachmentFile && !messageMediaUrl) return;
     if (!selectedRequest) return;
 
     setSendingMessage(true);
@@ -451,7 +476,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
           emisorNombre: user?.nombre || 'Estudiante',
           emisorFoto: userPhoto,
           mensaje: newMessageText,
-          mediaUrl: messageMediaUrl
+          mediaUrl: attachmentFile ? attachmentFile.dataUrl : messageMediaUrl,
+          nombreArchivo: attachmentFile ? attachmentFile.name : '',
+          tamanoArchivo: attachmentFile ? attachmentFile.size : ''
         })
       });
 
@@ -462,6 +489,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
       setNewMessageText('');
       setMessageMediaUrl('');
+      setAttachmentFile(null);
       fetchRequests();
     } catch (err) {
       if (showToast) showToast(err.message, 'error');
@@ -470,16 +498,34 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   };
 
-  // Adjuntar imagen en chat
+  // Adjuntar CUALQUIER tipo de archivo (PDF, Word, Excel, ZIP, imágenes, etc.)
   const handleChatFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    let sizeStr = '';
+    if (file.size >= 1024 * 1024) {
+      sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    } else {
+      sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
+      setAttachmentFile({
+        name: file.name,
+        size: sizeStr,
+        type: file.type || '',
+        dataUrl: reader.result
+      });
       setMessageMediaUrl(reader.result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAttachment = () => {
+    setAttachmentFile(null);
+    setMessageMediaUrl('');
   };
 
   // Peticiones agrupadas por rol
@@ -703,7 +749,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
                   {selectedRequest.mediaUrl && (
                     <div className="pt-2">
-                      {selectedRequest.mediaUrl.startsWith('data:image') ? (
+                      {isMediaImage(selectedRequest.mediaUrl) ? (
                         <img 
                           src={selectedRequest.mediaUrl} 
                           alt="Adjunto de propuesta" 
@@ -712,8 +758,16 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                           title="Haz clic para ver en pantalla completa y hacer Zoom 🔍"
                         />
                       ) : (
-                        <a href={selectedRequest.mediaUrl} download className="text-xs text-indigo-300 font-bold bg-indigo-500/10 px-3 py-1.5 rounded-xl border border-indigo-500/20 inline-block">
-                          📎 Descargar archivo adjunto
+                        <a 
+                          href={selectedRequest.mediaUrl} 
+                          download="propuesta_adjunta"
+                          className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900 border border-white/10 hover:border-indigo-500/50 hover:bg-slate-800 transition-all inline-flex text-left"
+                        >
+                          <span className="text-xl">📎</span>
+                          <div>
+                            <p className="text-xs font-bold text-white">Archivo adjunto de propuesta</p>
+                            <p className="text-[10px] text-indigo-300 font-mono-code">Haz clic para descargar 📥</p>
+                          </div>
                         </a>
                       )}
                     </div>
@@ -822,17 +876,44 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                                   ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-600/20' 
                                   : 'bg-slate-900 border border-white/10 text-slate-200 rounded-tl-none'
                               }`}>
-                                {msg.mensaje}
+                                {msg.mensaje && <p>{msg.mensaje}</p>}
 
+                                {/* ADJUNTO DE IMAGEN O DOCUMENTO CON BOTÓN DE DESCARGA */}
                                 {msg.mediaUrl && (
-                                  <div className="mt-2">
-                                    <img 
-                                      src={msg.mediaUrl} 
-                                      alt="Adjunto chat" 
-                                      onClick={() => setActiveZoomImage({ src: msg.mediaUrl, title: `Imagen enviada por ${msg.emisorNombre}` })}
-                                      className="max-h-48 rounded-lg object-cover cursor-pointer hover:opacity-90 hover:scale-[1.01] transition-all border border-white/10" 
-                                      title="Haz clic para ver en pantalla completa y hacer Zoom 🔍"
-                                    />
+                                  <div className="mt-2.5">
+                                    {isMediaImage(msg.mediaUrl, msg.nombreArchivo) ? (
+                                      <img 
+                                        src={msg.mediaUrl} 
+                                        alt={msg.nombreArchivo || "Adjunto chat"} 
+                                        onClick={() => setActiveZoomImage({ src: msg.mediaUrl, title: `Imagen enviada por ${msg.emisorNombre}` })}
+                                        className="max-h-48 rounded-xl object-cover cursor-pointer hover:opacity-90 hover:scale-[1.01] transition-all border border-white/10 shadow-md" 
+                                        title="Haz clic para ver en pantalla completa y hacer Zoom 🔍"
+                                      />
+                                    ) : (
+                                      <a 
+                                        href={msg.mediaUrl} 
+                                        download={msg.nombreArchivo || 'archivo_adjunto'}
+                                        className="flex items-center gap-3 p-3 rounded-2xl bg-slate-950/80 border border-white/10 hover:border-indigo-500/50 hover:bg-slate-900 transition-all group text-left"
+                                        title="Haz clic para descargar este archivo"
+                                      >
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+                                          {getFileIcon(msg.nombreArchivo)}
+                                        </div>
+                                        <div className="flex-1 overflow-hidden">
+                                          <p className="text-xs font-bold text-white truncate group-hover:text-indigo-300 transition-colors">
+                                            {msg.nombreArchivo || 'Archivo adjunto'}
+                                          </p>
+                                          {msg.tamanoArchivo && (
+                                            <p className="text-[10px] text-slate-400 font-mono-code">
+                                              {msg.tamanoArchivo}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <div className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-[11px] px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-md shrink-0">
+                                          <span>📥</span> Descargar
+                                        </div>
+                                      </a>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -842,7 +923,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                       })
                     ) : (
                       <p className="text-xs text-slate-500 italic text-center py-6">
-                        ¡El chat ha sido habilitado! Envía un mensaje para comenzar a coordinar el trabajo.
+                        ¡El chat ha sido habilitado! Envía un mensaje o adjunta cualquier archivo (PDF, Word, ZIP, etc.) para comenzar.
                       </p>
                     )}
 
@@ -852,36 +933,57 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
               </div>
 
-              {/* CAJA DE TEXTO DEL CHAT TIPO DISCORD */}
+              {/* CAJA DE TEXTO DEL CHAT TIPO DISCORD CON SUBIDA DE ARCHIVOS DE CUALQUIER TIPO */}
               {selectedRequest.estado === 'aceptado' && (
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10 bg-slate-900/60 flex items-center gap-3">
-                  <label title="Adjuntar imagen" className="text-slate-400 hover:text-white p-2.5 rounded-xl hover:bg-white/10 cursor-pointer border border-white/5 transition-colors">
-                    <span>📎</span>
-                    <input type="file" accept="image/*" onChange={handleChatFileChange} className="hidden" />
-                  </label>
-
-                  {messageMediaUrl && (
-                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-lg">
-                      Imagen adjunta ✓
-                    </span>
+                <div className="border-t border-white/10 bg-slate-900/60">
+                  
+                  {/* PREVISUALIZACIÓN DEL ARCHIVO SELECCIONADO PARA ENVIAR */}
+                  {attachmentFile && (
+                    <div className="px-4 py-2 bg-indigo-500/10 border-b border-indigo-500/20 flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 truncate text-indigo-200">
+                        <span className="text-sm">{getFileIcon(attachmentFile.name, attachmentFile.type)}</span>
+                        <span className="font-bold truncate">{attachmentFile.name}</span>
+                        <span className="text-[10px] text-indigo-400 font-mono-code font-bold">({attachmentFile.size})</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveAttachment}
+                        className="text-slate-400 hover:text-rose-400 font-bold px-2 py-0.5 rounded-lg hover:bg-white/10 cursor-pointer transition-colors"
+                        title="Quitar archivo adjunto"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   )}
 
-                  <input
-                    type="text"
-                    placeholder={`Enviar mensaje sobre "${selectedRequest.tituloPeticion}"...`}
-                    value={newMessageText}
-                    onChange={(e) => setNewMessageText(e.target.value)}
-                    className="flex-1 px-4 py-2.5 rounded-2xl border border-white/10 bg-slate-900 text-white placeholder-slate-500 text-xs focus:border-indigo-500 outline-none"
-                  />
+                  <form onSubmit={handleSendMessage} className="p-4 flex items-center gap-3">
+                    <label title="Adjuntar cualquier archivo (PDF, Word, Excel, Imágenes, ZIP...)" className="text-slate-400 hover:text-white p-2.5 rounded-xl hover:bg-white/10 cursor-pointer border border-white/5 transition-colors shrink-0">
+                      <span>📎</span>
+                      <input 
+                        type="file" 
+                        accept="*/*" 
+                        onChange={handleChatFileChange} 
+                        className="hidden" 
+                      />
+                    </label>
 
-                  <button
-                    type="submit"
-                    disabled={sendingMessage || (!newMessageText.trim() && !messageMediaUrl)}
-                    className="btn-accent-gradient font-black text-xs px-5 py-2.5 rounded-2xl cursor-pointer disabled:opacity-40"
-                  >
-                    Enviar 🚀
-                  </button>
-                </form>
+                    <input
+                      type="text"
+                      placeholder={`Enviar mensaje sobre "${selectedRequest.tituloPeticion}"...`}
+                      value={newMessageText}
+                      onChange={(e) => setNewMessageText(e.target.value)}
+                      className="flex-1 px-4 py-2.5 rounded-2xl border border-white/10 bg-slate-900 text-white placeholder-slate-500 text-xs focus:border-indigo-500 outline-none"
+                    />
+
+                    <button
+                      type="submit"
+                      disabled={sendingMessage || (!newMessageText.trim() && !attachmentFile && !messageMediaUrl)}
+                      className="btn-accent-gradient font-black text-xs px-5 py-2.5 rounded-2xl cursor-pointer disabled:opacity-40 shrink-0"
+                    >
+                      Enviar 🚀
+                    </button>
+                  </form>
+                </div>
               )}
             </>
           ) : (
@@ -893,7 +995,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                 Selecciona una petición o chat
               </h3>
               <p className="text-xs text-slate-400 max-w-sm">
-                Elige una solicitud recibida o enviada desde la lista de la izquierda para revisar la propuesta técnica o chatear.
+                Elige una solicitud recibida o enviada desde la lista de la izquierda para revisar la propuesta técnica o chatear y enviar archivos.
               </p>
             </div>
           )}
