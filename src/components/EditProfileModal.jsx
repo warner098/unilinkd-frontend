@@ -38,9 +38,9 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave, onOpen
 
   const [formData, setFormData] = useState({
     nombre: user?.nombre || '',
-    titulo: user?.titulo || 'Estudiante de Desarrollo Web / BD',
+    titulo: user?.titulo || '',
     facultad: user?.facultad || 'Facultad de Ciencias Informáticas y Sistemas',
-    carrera: user?.carrera || 'Tecnologías de la Información',
+    carrera: user?.carrera || '',
     semestre: user?.semestre || '1er Semestre',
     bio: user?.bio || '', // 👈 Descripción personal
     fotoUrl: user?.fotoUrl || ''
@@ -51,9 +51,9 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave, onOpen
     if (user) {
       setFormData({
         nombre: user.nombre || '',
-        titulo: user.titulo || 'Estudiante de Desarrollo Web / BD',
+        titulo: user.titulo || '',
         facultad: user.facultad || 'Facultad de Ciencias Informáticas y Sistemas',
-        carrera: user.carrera || 'Tecnologías de la Información',
+        carrera: user.carrera || '',
         semestre: user.semestre || '1er Semestre',
         bio: user.bio || '',
         fotoUrl: user.fotoUrl || ''

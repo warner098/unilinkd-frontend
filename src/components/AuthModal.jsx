@@ -100,32 +100,57 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login', onLog
   };
 
   // AL SELECCIONAR UNA CUENTA EN EL SELECTOR DE GOOGLE
-  const handleSelectGoogleAccount = (googleAccount) => {
+  const handleSelectGoogleAccount = async (googleAccount) => {
     setIsGoogleModalOpen(false);
+    setLoading(true);
 
-    const userToSave = {
-      id: 'google_user_' + Date.now(),
+    const googlePayload = {
+      googleId: googleAccount.id || googleAccount.googleId || 'google_' + googleAccount.correo,
       nombre: googleAccount.nombre,
       correo: googleAccount.correo,
       semestre: googleAccount.semestre || '5to Semestre',
       areas: ['Tecnologías de la Información / Software'],
-      fotoUrl: googleAccount.avatar,
-      rol: 'estudiante'
+      fotoUrl: googleAccount.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
     };
 
-    localStorage.setItem('token', 'google_token_' + Date.now());
-    localStorage.setItem('user', JSON.stringify(userToSave));
+    try {
+      // Sincronizar y obtener el perfil real guardado en MongoDB
+      const res = await fetch(`${API_BASE_URL}/api/auth/google-sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(googlePayload)
+      });
 
-    const firstName = googleAccount.nombre ? googleAccount.nombre.split(' ')[0] : 'Estudiante';
+      if (res.ok) {
+        const data = await res.json();
+        const mongoUser = data.user;
 
-    if (showToast) {
-      showToast(`¡Bienvenido, ${firstName}! Has accedido con tu cuenta de Google (${googleAccount.correo}).`, 'success', '✨');
+        localStorage.setItem('token', 'google_token_' + Date.now());
+        localStorage.setItem('user', JSON.stringify(mongoUser));
+
+        const firstName = mongoUser.nombre ? mongoUser.nombre.split(' ')[0] : 'Estudiante';
+        if (showToast) {
+          showToast(`¡Bienvenido, ${firstName}! Has accedido con tu cuenta de Google (${mongoUser.correo}).`, 'success', '✨');
+        }
+
+        if (onLoginSuccess) {
+          onLoginSuccess(mongoUser);
+        }
+        onClose();
+      } else {
+        throw new Error('Error al sincronizar con el servidor');
+      }
+    } catch (err) {
+      console.error('Error al iniciar sesión con Google:', err);
+      // Fallback local si no hay conexión
+      const fallbackUser = { ...googlePayload, id: 'google_user_' + googleAccount.correo };
+      localStorage.setItem('token', 'google_token_' + Date.now());
+      localStorage.setItem('user', JSON.stringify(fallbackUser));
+      if (onLoginSuccess) onLoginSuccess(fallbackUser);
+      onClose();
+    } finally {
+      setLoading(false);
     }
-
-    if (onLoginSuccess) {
-      onLoginSuccess(userToSave);
-    }
-    onClose();
   };
 
   // ENVÍO DE DATOS CON CORREO Y CONTRASEÑA
