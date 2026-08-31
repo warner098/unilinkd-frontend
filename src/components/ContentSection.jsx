@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, onOpenServiceChats, user, onOpenPublicProfile }) {
+export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, onOpenServiceChats, user, onOpenPublicProfile, onOpenJoinProject }) {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [dbProjects, setDbProjects] = useState([]);
   const [dbServices, setDbServices] = useState([]);
@@ -252,7 +252,9 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         {p.categoriaPrincipal || 'General'}
                       </span>
                       <span className="text-[11px] text-amber-300 font-extrabold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                        {p.colaboradoresBuscados || 'Colaboradores'}
+                        {p.colaboradoresUnidos > 0 
+                          ? `${p.colaboradoresUnidos} Colaborador${p.colaboradoresUnidos > 1 ? 'es' : ''}` 
+                          : (p.colaboradoresBuscados || 'Colaboradores')}
                       </span>
                     </div>
 
@@ -314,8 +316,11 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         </button>
                       )}
 
-                      <button className="btn-accent-gradient font-black text-xs px-4 py-2 rounded-xl cursor-pointer">
-                        Unirme →
+                      <button 
+                        onClick={() => onOpenJoinProject && onOpenJoinProject(p)}
+                        className="btn-accent-gradient font-black text-xs px-4 py-2 rounded-xl cursor-pointer hover:scale-105 transition-transform"
+                      >
+                        Unirme al Proyecto
                       </button>
                     </div>
                   </div>

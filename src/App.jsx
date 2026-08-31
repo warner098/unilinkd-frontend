@@ -18,6 +18,7 @@ import ChatHubModal from './components/ChatHubModal';
 import PortfolioModal from './components/PortfolioModal';
 import PublicProfileModal from './components/PublicProfileModal';
 import ProjectDetailModal from './components/ProjectDetailModal';
+import JoinProjectModal from './components/JoinProjectModal';
 
 import { API_BASE_URL } from './config/api';
 
@@ -52,6 +53,10 @@ function App() {
   const [selectedPortfolioProject, setSelectedPortfolioProject] = useState(null);
   const [projectAuthorInfo, setProjectAuthorInfo] = useState({ name: '', avatar: '' });
 
+  // Modal Postularse / Unirme a Proyecto
+  const [isJoinProjectOpen, setIsJoinProjectOpen] = useState(false);
+  const [selectedProjectForJoin, setSelectedProjectForJoin] = useState(null);
+
   const handleOpenPublicProfile = (identifier) => {
     if (!identifier) return;
     setPublicProfileTarget(identifier);
@@ -63,6 +68,17 @@ function App() {
     setSelectedPortfolioProject(project);
     setProjectAuthorInfo({ name: authorName, avatar: authorAvatar });
     setIsProjectDetailOpen(true);
+  };
+
+  const handleOpenJoinProject = (project) => {
+    if (!user) {
+      setAuthTab('login');
+      setIsAuthOpen(true);
+      showToast('Por favor inicia sesión para postularte a unirte a un proyecto.', 'warning');
+      return;
+    }
+    setSelectedProjectForJoin(project);
+    setIsJoinProjectOpen(true);
   };
   
   // Modal de Solicitud de Ayuda
@@ -338,6 +354,7 @@ function App() {
             onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
             initialDashboardTab={dashboardTab}
             onOpenPublicProfile={handleOpenPublicProfile}
+            onOpenJoinProject={handleOpenJoinProject}
           />
         </main>
       ) : (
@@ -357,6 +374,7 @@ function App() {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onOpenPublicProfile={handleOpenPublicProfile}
+              onOpenJoinProject={handleOpenJoinProject}
             />
             <HowItWorks />
           </main>
@@ -412,6 +430,19 @@ function App() {
         project={selectedPortfolioProject}
         authorName={projectAuthorInfo.name}
         authorAvatar={projectAuthorInfo.avatar}
+      />
+
+      {/* Modal Postularse a Proyecto */}
+      <JoinProjectModal
+        isOpen={isJoinProjectOpen}
+        onClose={() => setIsJoinProjectOpen(false)}
+        project={selectedProjectForJoin}
+        user={user}
+        showToast={showToast}
+        onSuccess={() => {
+          setRefreshKey((prev) => prev + 1);
+          handleOpenChatHub();
+        }}
       />
 
       {/* Modal Publicar Servicio o Proyecto */}

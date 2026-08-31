@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, onRequestHelp, onOpenServiceChats, initialDashboardTab = 'servicios', onOpenPublicProfile }) {
+export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, onRequestHelp, onOpenServiceChats, initialDashboardTab = 'servicios', onOpenPublicProfile, onOpenJoinProject }) {
   const [activeTab, setActiveTab] = useState(initialDashboardTab);
   
   const [services, setServices] = useState([]);
@@ -447,7 +447,9 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         {proj.categoriaPrincipal || 'General'}
                       </span>
                       <span className="text-[11px] font-extrabold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-                        {proj.colaboradoresBuscados || 'Colaboradores'}
+                        {proj.colaboradoresUnidos > 0 
+                          ? `${proj.colaboradoresUnidos} Colaborador${proj.colaboradoresUnidos > 1 ? 'es' : ''}` 
+                          : (proj.colaboradoresBuscados || 'Colaboradores')}
                       </span>
                     </div>
 
@@ -519,7 +521,10 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                         </button>
                       )}
 
-                      <button className="btn-accent-gradient font-black text-xs px-4 py-2 rounded-xl cursor-pointer">
+                      <button 
+                        onClick={() => onOpenJoinProject && onOpenJoinProject(proj)}
+                        className="btn-accent-gradient font-black text-xs px-4 py-2 rounded-xl cursor-pointer hover:scale-105 transition-transform"
+                      >
                         Unirme al Proyecto
                       </button>
                     </div>
