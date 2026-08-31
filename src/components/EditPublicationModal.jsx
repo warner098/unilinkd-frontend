@@ -229,51 +229,51 @@ export default function EditPublicationModal({ isOpen, onClose, item, itemType, 
           {itemType === 'proyecto' ? (
             <>
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Título del Proyecto</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Título del Proyecto</label>
                 <input
                   type="text"
                   required
                   value={projectData.titulo}
                   onChange={(e) => setProjectData({ ...projectData, titulo: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Categoría Principal</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Categoría Principal</label>
                 <select
                   value={projectData.categoriaPrincipal}
                   onChange={(e) => setProjectData({ ...projectData, categoriaPrincipal: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none"
                 >
                   {categoriasProyectos.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat} className="bg-slate-900 text-white">{cat}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Descripción Detallada</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Descripción Detallada</label>
                 <textarea
                   rows={4}
                   required
                   value={projectData.descripcion}
                   onChange={(e) => setProjectData({ ...projectData, descripcion: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none resize-none"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Imagen Demostrativa (Desde PC)</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Imagen Demostrativa (Desde PC)</label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleProjectImageUpload}
-                  className="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                  className="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 cursor-pointer"
                 />
                 {projectData.mediaUrl && projectData.mediaUrl.startsWith('data:image') && (
                   <div className="mt-2 relative inline-block">
-                    <img src={projectData.mediaUrl} alt="Preview" className="w-24 h-24 object-cover rounded-xl border border-gray-200" />
+                    <img src={projectData.mediaUrl} alt="Preview" className="w-24 h-24 object-cover rounded-xl border border-white/10" />
                     <button
                       type="button"
                       onClick={() => setProjectData({ ...projectData, mediaUrl: '' })}
@@ -286,60 +286,60 @@ export default function EditPublicationModal({ isOpen, onClose, item, itemType, 
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Link Repositorio (Opcional)</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Link Repositorio (Opcional)</label>
                 <input
                   type="url"
                   value={projectData.repoUrl}
                   onChange={(e) => setProjectData({ ...projectData, repoUrl: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none"
                 />
               </div>
             </>
           ) : (
             <>
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Área de Especialidad / Tutoría</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Área de Especialidad / Tutoría</label>
                 <input
                   type="text"
                   required
                   value={serviceData.areaEspecialidad}
                   onChange={(e) => setServiceData({ ...serviceData, areaEspecialidad: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Semestre / Carrera</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Semestre / Carrera</label>
                 <input
                   type="text"
                   value={serviceData.semestre}
                   onChange={(e) => setServiceData({ ...serviceData, semestre: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Descripción de Habilidades / Tutoría</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Descripción de Habilidades / Tutoría</label>
                 <textarea
                   rows={4}
                   required
                   value={serviceData.descripcion}
                   onChange={(e) => setServiceData({ ...serviceData, descripcion: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none resize-none"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Foto de Perfil / Demostrativa (Desde PC)</label>
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Foto de Perfil / Demostrativa (Desde PC)</label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleServiceImageUpload}
-                  className="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                  className="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 cursor-pointer"
                 />
                 {serviceData.fotoUrl && serviceData.fotoUrl.startsWith('data:image') && (
                   <div className="mt-2 relative inline-block">
-                    <img src={serviceData.fotoUrl} alt="Preview" className="w-20 h-20 rounded-full object-cover border border-gray-200" />
+                    <img src={serviceData.fotoUrl} alt="Preview" className="w-20 h-20 rounded-full object-cover border border-white/10" />
                     <button
                       type="button"
                       onClick={() => setServiceData({ ...serviceData, fotoUrl: '' })}
@@ -355,7 +355,7 @@ export default function EditPublicationModal({ isOpen, onClose, item, itemType, 
 
           {/* ETIQUETAS OFICIALES */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Etiquetas Oficiales</label>
+            <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">Etiquetas Oficiales</label>
             <div className="relative">
               <input
                 type="text"

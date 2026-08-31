@@ -262,7 +262,7 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
         {activeTab === 'proyecto' && (
           <form onSubmit={handleSubmitProject} className="space-y-4 text-left">
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+              <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">
                 Nombre del Proyecto / Convocatoria *
               </label>
               <input
@@ -271,31 +271,31 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
                 placeholder="Ej. Sistema de Exámenes Anti-Cheating o Grupo de estudio de Cálculo"
                 value={projectData.titulo}
                 onChange={(e) => setProjectData({ ...projectData, titulo: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold placeholder:text-slate-500 text-sm focus:border-indigo-500 outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">
                   Categoría Principal *
                 </label>
                 <select
                   value={projectData.categoriaPrincipal}
                   onChange={(e) => setProjectData({ ...projectData, categoriaPrincipal: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold text-sm focus:border-indigo-500 outline-none"
                 >
-                  <option value="Programación / Software">Programación / Software</option>
-                  <option value="Matemáticas">Matemáticas</option>
-                  <option value="Ciencias">Ciencias</option>
-                  <option value="Diseño & Multimedia">Diseño & Multimedia</option>
-                  <option value="Derecho">Derecho</option>
-                  <option value="Otras">Otras</option>
+                  <option value="Programación / Software" className="bg-slate-900 text-white">Programación / Software</option>
+                  <option value="Matemáticas" className="bg-slate-900 text-white">Matemáticas</option>
+                  <option value="Ciencias" className="bg-slate-900 text-white">Ciencias</option>
+                  <option value="Diseño & Multimedia" className="bg-slate-900 text-white">Diseño & Multimedia</option>
+                  <option value="Derecho" className="bg-slate-900 text-white">Derecho</option>
+                  <option value="Otras" className="bg-slate-900 text-white">Otras</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">
                   Colaboradores Buscados
                 </label>
                 <input
@@ -303,15 +303,15 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
                   placeholder="Ej. 2 Colaboradores Backend, 1 Diseñador"
                   value={projectData.colaboradoresBuscados}
                   onChange={(e) => setProjectData({ ...projectData, colaboradoresBuscados: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold placeholder:text-slate-500 text-sm focus:border-indigo-500 outline-none"
                 />
               </div>
             </div>
 
             {/* CAMPO CONDICIONAL: REPOSITORIO GITHUB/GITLAB */}
             {projectData.categoriaPrincipal === 'Programación / Software' && (
-              <div className="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 animate-fade-in">
-                <label className="block text-xs font-bold text-indigo-900 uppercase mb-1 flex items-center gap-1.5">
+              <div className="bg-indigo-500/10 p-3 rounded-2xl border border-indigo-500/20 animate-fade-in">
+                <label className="block text-xs font-extrabold text-indigo-300 uppercase mb-1 flex items-center gap-1.5">
                   <span>💻</span> Link al Repositorio (GitHub / GitLab)
                 </label>
                 <input
@@ -319,13 +319,13 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
                   placeholder="https://github.com/tu-usuario/tu-proyecto"
                   value={projectData.repoUrl}
                   onChange={(e) => setProjectData({ ...projectData, repoUrl: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-indigo-200 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-indigo-500/30 bg-slate-900 text-white font-semibold placeholder:text-slate-500 text-sm focus:border-indigo-500 outline-none"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+              <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">
                 Descripción del Proyecto *
               </label>
               <textarea
@@ -334,13 +334,13 @@ export default function CreatePublicationModal({ isOpen, onClose, user, onSucces
                 placeholder="Explica de qué trata el proyecto, los objetivos y qué ayuda necesitas exactamente."
                 value={projectData.descripcion}
                 onChange={(e) => setProjectData({ ...projectData, descripcion: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-slate-900 text-white font-semibold placeholder:text-slate-500 text-sm focus:border-indigo-500 outline-none"
               ></textarea>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-extrabold text-slate-200 uppercase mb-1">
                   Imagen o Video Demostrativo
                 </label>
                 <div className="flex gap-2 items-center">
