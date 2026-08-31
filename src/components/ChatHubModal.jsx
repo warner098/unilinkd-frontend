@@ -224,6 +224,13 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   const [activeZoomImage, setActiveZoomImage] = useState(null);
 
   const chatBottomRef = useRef(null);
+  const mainScrollPanelRef = useRef(null);
+
+  // CONTROL INTELIGENTE DE SCROLL Y RE-RENDERS
+  const isUserScrolledUpRef = useRef(false);
+  const [showScrollDownBtn, setShowScrollDownBtn] = useState(false);
+  const prevMsgCountRef = useRef(0);
+  const prevChatIdRef = useRef(null);
 
   useEffect(() => {
     if (initialRequestId) {
@@ -277,7 +284,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext);
   };
 
-  // Cargar peticiones del usuario
+  // Cargar peticiones del usuario (Evita re-renderizados innecesarios comparando el contenido)
   const fetchRequests = async () => {
     if (!user) return;
     const userId = user.id || user._id;
@@ -312,7 +319,21 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         if (currentSelectedId) {
           const found = activeData.find(r => (r._id || r.id) === currentSelectedId);
           if (found) {
-            setSelectedRequest(found);
+            setSelectedRequest(prev => {
+              if (!prev) return found;
+              const prevId = prev._id || prev.id;
+              const foundId = found._id || found.id;
+              
+              // Si no cambió el ID y el contenido de mensajes es idéntico, PRESERVAR LA MISMA REFERENCIA DE ESTADO
+              if (
+                prevId === foundId &&
+                prev.estado === found.estado &&
+                JSON.stringify(prev.mensajes) === JSON.stringify(found.mensajes)
+              ) {
+                return prev;
+              }
+              return found;
+            });
           } else if (activeData.length > 0) {
             const firstId = activeData[0]._id || activeData[0].id;
             activeSelectedIdRef.current = firstId;
@@ -337,11 +358,6 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   };
 
-  const mainScrollPanelRef = useRef(null);
-  const isUserScrolledUpRef = useRef(false);
-  const prevMsgCountRef = useRef(0);
-  const prevChatIdRef = useRef(null);
-
   useEffect(() => {
     if (isOpen && user) {
       if (initialRequestId) {
@@ -355,15 +371,23 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   }, [isOpen, user, initialRequestId, filterServiceId]);
 
-  // Manejar el evento onScroll del usuario para detectar si subió voluntariamente
+  // DETECTAR DESPLAZAMIENTO MANUAL DEL USUARIO
   const handlePanelScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     const distanceToBottom = scrollHeight - scrollTop - clientHeight;
-    // Si la distancia al fondo es mayor a 120px, el usuario está leyendo arriba
-    isUserScrolledUpRef.current = distanceToBottom > 120;
+    const isUp = distanceToBottom > 100;
+    isUserScrolledUpRef.current = isUp;
+    setShowScrollDownBtn(isUp);
   };
 
-  // CONTROL DE SCROLL ESTRICTO: Respetar la lectura del usuario 100%
+  // SCROLL EXPLÍCITO HACIA EL FINAL
+  const scrollToBottom = (behavior = 'smooth') => {
+    isUserScrolledUpRef.current = false;
+    setShowScrollDownBtn(false);
+    chatBottomRef.current?.scrollIntoView({ behavior });
+  };
+
+  // EFECTO DE SCROLL INTELIGENTE: Jamás desplaza abajo si el usuario está leyendo arriba
   useEffect(() => {
     if (!selectedRequest) return;
     const currentId = selectedRequest._id || selectedRequest.id;
@@ -373,7 +397,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     if (prevChatIdRef.current !== currentId) {
       prevChatIdRef.current = currentId;
       prevMsgCountRef.current = currentCount;
-      isUserScrolledUpRef.current = false; // Resetear bloqueo
+      isUserScrolledUpRef.current = false;
+      setShowScrollDownBtn(false);
       setTimeout(() => {
         chatBottomRef.current?.scrollIntoView({ behavior: 'auto' });
       }, 60);
@@ -403,6 +428,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     setShowRejectInput(false);
     setAttachmentFile(null);
     setMessageMediaUrl('');
+    isUserScrolledUpRef.current = false;
+    setShowScrollDownBtn(false);
   };
 
   // Abrir modal de confirmación de borrado
@@ -529,7 +556,9 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       setMessageMediaUrl('');
       setAttachmentFile(null);
       isUserScrolledUpRef.current = false;
+      setShowScrollDownBtn(false);
       fetchRequests();
+      setTimeout(() => scrollToBottom('smooth'), 100);
     } catch (err) {
       if (showToast) showToast(err.message, 'error');
     } finally {
@@ -537,7 +566,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   };
 
-  // Adjuntar CUALQUIER tipo de archivo (PDF, Word, Excel, ZIP, imágenes, etc.)
+  // Adjuntar CUALQUIER tipo de archivo
   const handleChatFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -719,12 +748,12 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
         {/* ======================================================== */}
         {/* COLUMNA DERECHA: PANEL DE PROPUESTA O CHAT VIVO DISCORD  */}
         {/* ======================================================== */}
-        <div className="flex-1 flex flex-col h-full bg-[#0C0F19] overflow-hidden">
+        <div className="flex-1 flex flex-col h-full bg-[#0C0F19] overflow-hidden relative">
           
           {selectedRequest ? (
             <>
               {/* CABECERA SUPERIOR DEL CHAT CON PR-16 PARA EVITAR COLISIÓN CON EL BOTÓN X */}
-              <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-900/40 pr-16">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-900/40 pr-16 shrink-0">
                 <div className="space-y-0.5 overflow-hidden">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-black text-white font-heading truncate">
@@ -755,8 +784,24 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                 </button>
               </div>
 
+              {/* BOTÓN FLOTANTE "IR AL FINAL" CUANDO EL USUARIO ESTÁ LEYENDO MENSAJES ANTERIORES */}
+              {showScrollDownBtn && (
+                <button
+                  type="button"
+                  onClick={() => scrollToBottom('smooth')}
+                  className="absolute bottom-20 right-8 z-40 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/20 animate-bounce cursor-pointer transition-transform hover:scale-105"
+                  title="Regresar al último mensaje"
+                >
+                  <span>👇</span> Ver mensajes recientes
+                </button>
+              )}
+
               {/* CONTENIDO DEL PANEL CON DETECCIÓN DE POSICIÓN DE SCROLL DEL USUARIO */}
-              <div ref={mainScrollPanelRef} onScroll={handlePanelScroll} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              <div 
+                ref={mainScrollPanelRef} 
+                onScroll={handlePanelScroll} 
+                className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6"
+              >
                 
                 {/* TARJETA DE LA PROPUESTA INICIAL ENVIADA */}
                 <div className="bento-card p-5 space-y-3 bg-slate-950/60 border border-white/10">
@@ -974,7 +1019,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
 
               {/* CAJA DE TEXTO DEL CHAT TIPO DISCORD CON SUBIDA DE ARCHIVOS DE CUALQUIER TIPO */}
               {selectedRequest.estado === 'aceptado' && (
-                <div className="border-t border-white/10 bg-slate-900/60">
+                <div className="border-t border-white/10 bg-slate-900/60 shrink-0">
                   
                   {/* PREVISUALIZACIÓN DEL ARCHIVO SELECCIONADO PARA ENVIAR */}
                   {attachmentFile && (
