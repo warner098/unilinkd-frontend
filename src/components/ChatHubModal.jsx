@@ -198,7 +198,7 @@ function ZoomableImageModal({ image, onClose }) {
 // ========================================================
 // COMPONENTE PRINCIPAL CHAT HUB
 // ========================================================
-export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, filterServiceId, showToast }) {
+export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, filterServiceId, showToast, onOpenPublicProfile }) {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -788,7 +788,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 truncate">
-                    Servicio: <span className="text-indigo-400 font-bold">{selectedRequest.servicioTitulo}</span> | Solicitante: <span className="text-white font-bold">{selectedRequest.solicitanteNombre}</span>
+                    Servicio: <span className="text-indigo-400 font-bold">{selectedRequest.servicioTitulo}</span> | Solicitante: <span className="text-white font-bold cursor-pointer hover:underline hover:text-indigo-300" onClick={() => onOpenPublicProfile && onOpenPublicProfile(selectedRequest.solicitanteId || selectedRequest.solicitanteNombre)}>{selectedRequest.solicitanteNombre}</span>
                   </p>
                 </div>
 

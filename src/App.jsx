@@ -16,6 +16,8 @@ import ToastContainer from './components/ToastContainer';
 import RequestHelpModal from './components/RequestHelpModal';
 import ChatHubModal from './components/ChatHubModal';
 import PortfolioModal from './components/PortfolioModal';
+import PublicProfileModal from './components/PublicProfileModal';
+import ProjectDetailModal from './components/ProjectDetailModal';
 
 import { API_BASE_URL } from './config/api';
 
@@ -40,6 +42,28 @@ function App() {
   const [isPublicationOpen, setIsPublicationOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  // Modal Perfil Público de Usuario
+  const [isPublicProfileOpen, setIsPublicProfileOpen] = useState(false);
+  const [publicProfileTarget, setPublicProfileTarget] = useState(null);
+
+  // Modal Detalle Ampliado de Proyecto de Portafolio
+  const [isProjectDetailOpen, setIsProjectDetailOpen] = useState(false);
+  const [selectedPortfolioProject, setSelectedPortfolioProject] = useState(null);
+  const [projectAuthorInfo, setProjectAuthorInfo] = useState({ name: '', avatar: '' });
+
+  const handleOpenPublicProfile = (identifier) => {
+    if (!identifier) return;
+    setPublicProfileTarget(identifier);
+    setIsPublicProfileOpen(true);
+  };
+
+  const handleOpenProjectDetail = (project, authorName = '', authorAvatar = '') => {
+    if (!project) return;
+    setSelectedPortfolioProject(project);
+    setProjectAuthorInfo({ name: authorName, avatar: authorAvatar });
+    setIsProjectDetailOpen(true);
+  };
   
   // Modal de Solicitud de Ayuda
   const [isRequestHelpOpen, setIsRequestHelpOpen] = useState(false);
@@ -313,6 +337,7 @@ function App() {
             onRequestHelp={handleOpenRequestHelp}
             onOpenServiceChats={(serviceId) => handleOpenChatHub(null, serviceId)}
             initialDashboardTab={dashboardTab}
+            onOpenPublicProfile={handleOpenPublicProfile}
           />
         </main>
       ) : (
@@ -331,6 +356,7 @@ function App() {
               onRequestHelp={handleOpenRequestHelp}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
+              onOpenPublicProfile={handleOpenPublicProfile}
             />
             <HowItWorks />
           </main>
@@ -367,6 +393,25 @@ function App() {
         user={user}
         onUpdateUser={handleUpdateUserData}
         showToast={showToast}
+      />
+
+      {/* Modal Perfil Público de Cualquier Estudiante */}
+      <PublicProfileModal
+        isOpen={isPublicProfileOpen}
+        onClose={() => setIsPublicProfileOpen(false)}
+        userIdentifier={publicProfileTarget}
+        onOpenProjectDetail={handleOpenProjectDetail}
+        onRequestHelp={handleOpenRequestHelp}
+        onOpenChat={() => handleOpenChatHub()}
+      />
+
+      {/* Modal Detalle Ampliado de Proyecto de Portafolio */}
+      <ProjectDetailModal
+        isOpen={isProjectDetailOpen}
+        onClose={() => setIsProjectDetailOpen(false)}
+        project={selectedPortfolioProject}
+        authorName={projectAuthorInfo.name}
+        authorAvatar={projectAuthorInfo.avatar}
       />
 
       {/* Modal Publicar Servicio o Proyecto */}
@@ -424,6 +469,7 @@ function App() {
         initialRequestId={chatHubInitialRequestId}
         filterServiceId={chatHubFilterServiceId}
         showToast={showToast}
+        onOpenPublicProfile={handleOpenPublicProfile}
       />
 
       {/* TOAST CONTAINER GLOBAL */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, onRequestHelp, onOpenServiceChats, initialDashboardTab = 'servicios' }) {
+export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, onEditPublication, onRequestHelp, onOpenServiceChats, initialDashboardTab = 'servicios', onOpenPublicProfile }) {
   const [activeTab, setActiveTab] = useState(initialDashboardTab);
   
   const [services, setServices] = useState([]);
@@ -338,14 +338,25 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
 
                     <div className="flex items-center gap-3.5">
                       {est.fotoUrl ? (
-                        <img src={est.fotoUrl} alt={est.nombreEstudiante} className="w-12 h-12 rounded-xl object-cover ring-2 ring-indigo-500/30" />
+                        <img 
+                          src={est.fotoUrl} 
+                          alt={est.nombreEstudiante} 
+                          className="w-12 h-12 rounded-xl object-cover ring-2 ring-indigo-500/30 cursor-pointer hover:scale-105 transition-transform" 
+                          onClick={() => onOpenPublicProfile && onOpenPublicProfile(est.autorId || est.nombreEstudiante)}
+                        />
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-inner">
+                        <div 
+                          className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-inner cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => onOpenPublicProfile && onOpenPublicProfile(est.autorId || est.nombreEstudiante)}
+                        >
                           {(est.nombreEstudiante || 'E').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <h3 className="font-extrabold text-white text-base font-heading">
+                        <h3 
+                          className="font-extrabold text-white text-base font-heading cursor-pointer hover:text-indigo-400 hover:underline transition-colors"
+                          onClick={() => onOpenPublicProfile && onOpenPublicProfile(est.autorId || est.nombreEstudiante)}
+                        >
                           {est.nombreEstudiante}
                         </h3>
                         <p className="text-xs text-indigo-400 font-bold mt-0.5">{est.areaEspecialidad}</p>
@@ -477,7 +488,15 @@ export default function Dashboard({ user, onOpenPublicationModal, onOpenAdmin, o
                   </div>
 
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-400 font-bold">Por: {proj.autor || 'Estudiante'}</span>
+                    <div className="flex items-center gap-1 text-xs text-slate-400 font-bold">
+                      <span>Por:</span>
+                      <span 
+                        className="text-indigo-300 font-bold cursor-pointer hover:underline hover:text-indigo-200 transition-colors"
+                        onClick={() => onOpenPublicProfile && onOpenPublicProfile(proj.autorId || proj.autor)}
+                      >
+                        {proj.autor || 'Estudiante'}
+                      </span>
+                    </div>
                     
                     <div className="flex items-center gap-2">
                       {canDelete(proj) && onEditPublication && (

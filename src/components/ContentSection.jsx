@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
-export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, onOpenServiceChats, user }) {
+export default function ContentSection({ activeTab, setActiveTab, onOpenPublicationModal, onRequestHelp, onOpenServiceChats, user, onOpenPublicProfile }) {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [dbProjects, setDbProjects] = useState([]);
   const [dbServices, setDbServices] = useState([]);
@@ -293,7 +293,15 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                   </div>
 
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-400 font-bold">Por: {p.autor || 'Estudiante'}</span>
+                    <div className="flex items-center gap-1 text-xs text-slate-400 font-bold">
+                      <span>Por:</span>
+                      <span 
+                        className="text-indigo-300 font-bold cursor-pointer hover:underline hover:text-indigo-200 transition-colors"
+                        onClick={() => onOpenPublicProfile && onOpenPublicProfile(p.autorId || p.autor)}
+                      >
+                        {p.autor || 'Estudiante'}
+                      </span>
+                    </div>
                     
                     <div className="flex items-center gap-2">
                       {canDelete(p) && (
@@ -348,15 +356,22 @@ export default function ContentSection({ activeTab, setActiveTab, onOpenPublicat
                         <img 
                           src={student.fotoUrl} 
                           alt={student.nombreEstudiante} 
-                          className="w-12 h-12 rounded-xl object-cover ring-2 ring-indigo-500/30"
+                          className="w-12 h-12 rounded-xl object-cover ring-2 ring-indigo-500/30 cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => onOpenPublicProfile && onOpenPublicProfile(student.autorId || student.nombreEstudiante)}
                         />
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center text-xl font-black shadow-inner">
+                        <div 
+                          className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center text-xl font-black shadow-inner cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => onOpenPublicProfile && onOpenPublicProfile(student.autorId || student.nombreEstudiante)}
+                        >
                           {(student.nombreEstudiante || 'E').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <h3 className="text-base font-extrabold text-white font-heading">
+                        <h3 
+                          className="text-base font-extrabold text-white font-heading cursor-pointer hover:text-indigo-400 hover:underline transition-colors"
+                          onClick={() => onOpenPublicProfile && onOpenPublicProfile(student.autorId || student.nombreEstudiante)}
+                        >
                           {student.nombreEstudiante}
                         </h3>
                         <p className="text-xs text-indigo-400 font-bold mt-0.5">
