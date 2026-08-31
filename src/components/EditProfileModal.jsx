@@ -97,6 +97,13 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
     onClose();
   };
 
+  // Estilo forzado para garantizar texto negro intenso (#0F172A) en cualquier navegador u OS
+  const inputLightStyle = {
+    color: '#0F172A',
+    backgroundColor: '#FFFFFF',
+    fontWeight: '700'
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto my-auto text-left text-slate-900 border border-slate-200">
@@ -152,7 +159,8 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
                   value={formData.fotoUrl}
                   onChange={handleChange}
                   placeholder="https://ejemplo.com/tu-foto.jpg"
-                  className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white text-slate-900 placeholder:text-slate-400"
+                  style={inputLightStyle}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -167,7 +175,8 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
-                className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
+                style={inputLightStyle}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400 shadow-sm"
                 required
               />
             </div>
@@ -179,7 +188,8 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
                 value={formData.titulo}
                 onChange={handleChange}
                 placeholder="Ej. Estudiante de Desarrollo Web / BD"
-                className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
+                style={inputLightStyle}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400 shadow-sm"
               />
             </div>
           </div>
@@ -192,10 +202,11 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
                 name="facultad"
                 value={formData.facultad}
                 onChange={handleChange}
-                className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 outline-none shadow-sm"
+                style={inputLightStyle}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 outline-none shadow-sm"
               >
                 {LISTA_FACULTADES.map((fac, idx) => (
-                  <option key={idx} value={fac} className="bg-white text-slate-900 font-bold">{fac}</option>
+                  <option key={idx} value={fac} style={{ color: '#0F172A', backgroundColor: '#FFFFFF', fontWeight: '700' }}>{fac}</option>
                 ))}
               </select>
             </div>
@@ -208,7 +219,8 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
                 value={formData.carrera}
                 onChange={handleChange}
                 placeholder="Ej. Tecnologías de la Información"
-                className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
+                style={inputLightStyle}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400 shadow-sm"
               />
             </div>
 
@@ -218,12 +230,13 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
                 name="semestre"
                 value={formData.semestre}
                 onChange={handleChange}
-                className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 outline-none shadow-sm"
+                style={inputLightStyle}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 outline-none shadow-sm"
               >
                 {[...Array(10)].map((_, i) => (
-                  <option key={i} value={`${i + 1}mo Semestre`} className="bg-white text-slate-900 font-bold">{`${i + 1}mo Semestre`}</option>
+                  <option key={i} value={`${i + 1}mo Semestre`} style={{ color: '#0F172A', backgroundColor: '#FFFFFF', fontWeight: '700' }}>{`${i + 1}mo Semestre`}</option>
                 ))}
-                <option value="Egresado" className="bg-white text-slate-900 font-bold">Egresado / Graduado</option>
+                <option value="Egresado" style={{ color: '#0F172A', backgroundColor: '#FFFFFF', fontWeight: '700' }}>Egresado / Graduado</option>
               </select>
             </div>
           </div>
@@ -309,7 +322,8 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
               value={formData.bio}
               onChange={handleChange}
               placeholder="Cuéntanos un poco sobre ti, tus intereses académicos o proyectos pasados..."
-              className="w-full text-xs font-bold p-3 rounded-2xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm leading-relaxed"
+              style={inputLightStyle}
+              className="w-full text-xs p-3 rounded-2xl border border-slate-300 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400 shadow-sm leading-relaxed"
             ></textarea>
           </div>
 
