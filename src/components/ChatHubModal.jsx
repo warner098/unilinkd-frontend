@@ -338,6 +338,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
   };
 
   const mainScrollPanelRef = useRef(null);
+  const isUserScrolledUpRef = useRef(false);
   const prevMsgCountRef = useRef(0);
   const prevChatIdRef = useRef(null);
 
@@ -354,36 +355,41 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
     }
   }, [isOpen, user, initialRequestId, filterServiceId]);
 
-  // CONTROL INTELIGENTE DE SCROLL: No desborda ni fuerza scroll abajo cuando el usuario está leyendo mensajes anteriores
+  // Manejar el evento onScroll del usuario para detectar si subió voluntariamente
+  const handlePanelScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+    // Si la distancia al fondo es mayor a 120px, el usuario está leyendo arriba
+    isUserScrolledUpRef.current = distanceToBottom > 120;
+  };
+
+  // CONTROL DE SCROLL ESTRICTO: Respetar la lectura del usuario 100%
   useEffect(() => {
     if (!selectedRequest) return;
     const currentId = selectedRequest._id || selectedRequest.id;
     const currentCount = selectedRequest.mensajes ? selectedRequest.mensajes.length : 0;
 
-    // 1. Si cambió de canal/chat, ir al final una sola vez
+    // 1. Si cambió de canal/chat en la lista lateral
     if (prevChatIdRef.current !== currentId) {
       prevChatIdRef.current = currentId;
       prevMsgCountRef.current = currentCount;
+      isUserScrolledUpRef.current = false; // Resetear bloqueo
       setTimeout(() => {
         chatBottomRef.current?.scrollIntoView({ behavior: 'auto' });
-      }, 50);
+      }, 60);
       return;
     }
 
-    // 2. Si es el mismo chat, sólo hacer scroll si AUMENTÓ la cantidad de mensajes
+    // 2. Si el usuario subió la pantalla para ver mensajes anteriores, NUNCA forzar scroll abajo
+    if (isUserScrolledUpRef.current) {
+      prevMsgCountRef.current = currentCount;
+      return;
+    }
+
+    // 3. Si está al final y llegó un mensaje nuevo, hacer scroll suave al final
     if (currentCount > prevMsgCountRef.current) {
       prevMsgCountRef.current = currentCount;
-
-      if (mainScrollPanelRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = mainScrollPanelRef.current;
-        const isNearBottom = scrollHeight - scrollTop - clientHeight < 180;
-
-        if (isNearBottom) {
-          chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-      } else {
-        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [selectedRequest?.mensajes, selectedRequest?._id, selectedRequest?.id]);
 
@@ -522,6 +528,7 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
       setNewMessageText('');
       setMessageMediaUrl('');
       setAttachmentFile(null);
+      isUserScrolledUpRef.current = false;
       fetchRequests();
     } catch (err) {
       if (showToast) showToast(err.message, 'error');
@@ -748,8 +755,8 @@ export default function ChatHubModal({ isOpen, onClose, user, initialRequestId, 
                 </button>
               </div>
 
-              {/* CONTENIDO DEL PANEL CON DECTECIÓN DE POSICIÓN DE SCROLL */}
-              <div ref={mainScrollPanelRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              {/* CONTENIDO DEL PANEL CON DETECCIÓN DE POSICIÓN DE SCROLL DEL USUARIO */}
+              <div ref={mainScrollPanelRef} onScroll={handlePanelScroll} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
                 
                 {/* TARJETA DE LA PROPUESTA INICIAL ENVIADA */}
                 <div className="bento-card p-5 space-y-3 bg-slate-950/60 border border-white/10">
